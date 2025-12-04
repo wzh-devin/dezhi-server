@@ -1,0 +1,231 @@
+package com.devin.dezhi.satoken;
+
+import cn.dev33.satoken.dao.SaTokenDao;
+import cn.dev33.satoken.session.SaSession;
+import com.alibaba.fastjson2.JSON;
+import com.devin.dezhi.constant.RedisKey;
+import com.devin.dezhi.utils.RedisUtils;
+import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 2025/12/4 21:45.
+ *
+ * <p>
+ * 自定义 Sa-Token 实现类
+ * </p>
+ *
+ * @author <a href="https://github.com/wzh-devin">devin</a>
+ * @version 1.0.0
+ * @since 1.0.0
+ */
+@Component
+// CHECKSTYLE:OFF
+public class CustomSaTokenDao implements SaTokenDao {
+
+    /**
+     * 获取 Value，如无返空
+     */
+    @Override
+    public String get(final String key) {
+        return RedisUtils.get(RedisKey.generateRedisKey(key));
+    }
+
+    /**
+     * 写入 Value，并设定存活时间 (单位: 秒)
+     */
+    @Override
+    public void set(final String key, final String value, final long timeout) {
+        if (timeout == 0 || timeout <= SaTokenDao.NOT_VALUE_EXPIRE) {
+            return;
+        }
+
+        String fullKey = RedisKey.generateRedisKey(key);
+
+        // 判断是否为永不过期
+        if (timeout == SaTokenDao.NEVER_EXPIRE) {
+            RedisUtils.set(fullKey, value);
+        } else {
+            RedisUtils.setEx(fullKey, value, timeout, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * 修改 Value
+     */
+    @Override
+    public void update(final String key, final String value) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        long expire = getTimeout(fullKey);
+        if (expire == SaTokenDao.NOT_VALUE_EXPIRE) {
+            return;
+        }
+        this.set(fullKey, value, expire);
+    }
+
+    /**
+     * 删除 Value
+     */
+    @Override
+    public void delete(final String key) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        RedisUtils.delete(fullKey);
+    }
+
+    /**
+     * 获取 Value 的剩余存活时间 (单位: 秒)
+     */
+    @Override
+    public long getTimeout(final String key) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        return RedisUtils.getExpire(fullKey, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 修改 Value 的剩余存活时间 (单位: 秒)
+     */
+    @Override
+    public void updateTimeout(final String key, final long timeout) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        if (timeout == SaTokenDao.NEVER_EXPIRE) {
+            long expire = getTimeout(fullKey);
+            if (expire == SaTokenDao.NEVER_EXPIRE) {
+                return;
+            }
+            this.set(fullKey, this.get(fullKey), timeout);
+        } else {
+            RedisUtils.expire(fullKey, timeout, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * 获取 Object，如无返空
+     */
+    @Override
+    public Object getObject(final String key) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        return RedisUtils.get(fullKey);
+    }
+
+    @Override
+    public <T> T getObject(final String s, final Class<T> aClass) {
+        return null;
+    }
+
+    /**
+     * 写入 Object，并设定存活时间 (单位: 秒)
+     */
+    @Override
+    public void setObject(final String key, final Object object, final long timeout) {
+        if (timeout == 0 || timeout <= SaTokenDao.NOT_VALUE_EXPIRE) {
+            return;
+        }
+
+        String value = JSON.toJSONString(object);
+        String fullKey = RedisKey.generateRedisKey(key);
+
+        if (timeout == SaTokenDao.NEVER_EXPIRE) {
+            RedisUtils.set(fullKey, value);
+        } else {
+            RedisUtils.setEx(fullKey, value, timeout, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * 更新 Object
+     */
+    @Override
+    public void updateObject(final String key, final Object object) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        long expire = getObjectTimeout(fullKey);
+        if (expire == SaTokenDao.NOT_VALUE_EXPIRE) {
+            return;
+        }
+        this.setObject(fullKey, object, expire);
+    }
+
+    /**
+     * 删除 Object
+     */
+    @Override
+    public void deleteObject(final String key) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        RedisUtils.delete(fullKey);
+    }
+
+    /**
+     * 获取 Object 的剩余存活时间 (单位: 秒)
+     */
+    @Override
+    public long getObjectTimeout(final String key) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        return RedisUtils.getExpire(fullKey, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 修改 Object 的剩余存活时间 (单位: 秒)
+     */
+    @Override
+    public void updateObjectTimeout(final String key, final long timeout) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        if (timeout == SaTokenDao.NEVER_EXPIRE) {
+            long expire = getObjectTimeout(fullKey);
+            if (expire == SaTokenDao.NEVER_EXPIRE) {
+                return;
+            }
+            this.setObject(fullKey, this.getObject(fullKey), timeout);
+        } else {
+            RedisUtils.expire(fullKey, timeout, TimeUnit.SECONDS);
+        }
+    }
+
+    @Override
+    public SaSession getSession(final String s) {
+        return null;
+    }
+
+    @Override
+    public void setSession(final SaSession saSession, final long l) {
+
+    }
+
+    @Override
+    public void updateSession(final SaSession saSession) {
+
+    }
+
+    @Override
+    public void deleteSession(final String s) {
+
+    }
+
+    @Override
+    public long getSessionTimeout(final String s) {
+        return 0;
+    }
+
+    @Override
+    public void updateSessionTimeout(final String s, final long l) {
+
+    }
+
+    /**
+     * 搜索数据
+     */
+    @Override
+    public List<String> searchData(String prefix, String keyword, int start, int size, boolean sortType) {
+        String fullKey = RedisKey.generateRedisKey(prefix);
+        Set<String> keys = RedisUtils.keys(fullKey + "*" + keyword + "*");
+        List<String> list = new ArrayList<>(keys);
+
+        // 限制范围
+        int fromIndex = Math.min(start, list.size());
+        int toIndex = Math.min(start + size, list.size());
+
+        return list.subList(fromIndex, toIndex);
+    }
+}
+// CHECKSTYLE:ON

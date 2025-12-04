@@ -2,16 +2,16 @@ spring:
   # 配置数据源
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POSTGRESQL_HOST}:${POSTGRESQL_PORT}/${POSTGRESQL_DATABASE}?currentSchema=${POSTGRESQL_SCHEMA}
+    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:${POSTGRESQL_PORT:5432}/${POSTGRESQL_DATABASE}?currentSchema=${POSTGRESQL_SCHEMA}
     username: ${POSTGRESQL_USER}
     password: ${POSTGRESQL_PASSWORD}
 
   # 配置 redis
   data:
     redis:
-      database: ${REDIS_DATABASE}
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      database: ${REDIS_DATABASE:0}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD}
 
 dezhi:

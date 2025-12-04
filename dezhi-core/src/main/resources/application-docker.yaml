@@ -1,0 +1,19 @@
+spring:
+  # 配置数据源
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRESQL_HOST}:${POSTGRESQL_PORT}/${POSTGRESQL_DATABASE}?currentSchema=${POSTGRESQL_SCHEMA}
+    username: ${POSTGRESQL_USER}
+    password: ${POSTGRESQL_PASSWORD}
+
+  # 配置 redis
+  data:
+    redis:
+      database: ${REDIS_DATABASE}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+dezhi:
+  # 配置加密密钥
+  secret-key: ${SECRET_KEY}

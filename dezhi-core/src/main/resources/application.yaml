@@ -189,3 +189,10 @@ mybatis-plus:
 # 日志配置
 logging:
   config: classpath:logback-spring.xml
+
+dezhi:
+  minio:
+    endpoint: xxx
+    access-key: xxx
+    secret-key: xxx
+    bucket-name: xxx

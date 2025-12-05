@@ -13,6 +13,8 @@ package com.devin.dezhi.constant;
  */
 public class RedisKey {
 
+    public static final String UPLOAD_SESSION_KEY = "upload:session:%s";
+
     /**
      * Redis基础Key.
      */

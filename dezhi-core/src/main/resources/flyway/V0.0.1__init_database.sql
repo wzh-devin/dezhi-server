@@ -1,5 +1,5 @@
 -- 加载Vector插件
-CREATE EXTENSION vector;
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- 创建相关表
 
@@ -107,25 +107,33 @@ COMMENT ON TABLE dezhi.dz_article_tag IS '文章-标签关联表';
 DROP TABLE IF EXISTS dezhi.dz_file;
 CREATE TABLE dezhi.dz_file(
                               id INT8 NOT NULL,
-                              name VARCHAR(255) NOT NULL,
-                              md5 CHAR(32) NOT NULL,
+                              original_name VARCHAR(255) NOT NULL,
+                              final_name VARCHAR(255) NOT NULL,
+                              bucket_name VARCHAR(255) NOT NULL,
+                              hash VARCHAR(128) NOT NULL,
                               size INT8 NOT NULL,
-                              type VARCHAR(5) NOT NULL,
+                              type VARCHAR(100) NOT NULL,
+                              extension VARCHAR(20) NOT NULL,
                               storage_type VARCHAR(10) NOT NULL,
-                              uri VARCHAR(255) NOT NULL,
+                              uri VARCHAR(255),
                               is_deleted INT2 NOT NULL DEFAULT 0,
+                              status VARCHAR(10) NOT NULL,
                               create_time TIMESTAMP NOT NULL DEFAULT NOW(),
                               update_time TIMESTAMP NOT NULL DEFAULT NOW(),
                               PRIMARY KEY (id)
 );
 COMMENT ON COLUMN dezhi.dz_file.id IS '主键id';
-COMMENT ON COLUMN dezhi.dz_file.name IS '文件名称';
-COMMENT ON COLUMN dezhi.dz_file.md5 IS '文件md5值';
+COMMENT ON COLUMN dezhi.dz_file.original_name IS '文件原始名称';
+COMMENT ON COLUMN dezhi.dz_file.final_name IS '存储的文件名称';
+COMMENT ON COLUMN dezhi.dz_file.bucket_name IS '存储桶名称';
+COMMENT ON COLUMN dezhi.dz_file.hash IS '文件哈希值';
 COMMENT ON COLUMN dezhi.dz_file.size IS '文件大小';
-COMMENT ON COLUMN dezhi.dz_file.type IS '文件类型';
+COMMENT ON COLUMN dezhi.dz_file.type IS '文件MIME类型';
+COMMENT ON COLUMN dezhi.dz_file.extension IS '文件扩展名';
 COMMENT ON COLUMN dezhi.dz_file.storage_type IS '文件存储类型';
 COMMENT ON COLUMN dezhi.dz_file.uri IS '文件uri地址';
 COMMENT ON COLUMN dezhi.dz_file.is_deleted IS '是否被删除（0: 正常; 1: 已删除）';
+COMMENT ON COLUMN dezhi.dz_file.status IS '文件状态（UPLOADING, FINISHED, FAILED）';
 COMMENT ON COLUMN dezhi.dz_file.create_time IS '创建时间';
 COMMENT ON COLUMN dezhi.dz_file.update_time IS '更新时间';
 COMMENT ON TABLE dezhi.dz_file IS '文件素材表';

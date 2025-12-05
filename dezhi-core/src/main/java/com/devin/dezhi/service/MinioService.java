@@ -34,9 +34,8 @@ public interface MinioService {
      * @param chunkIndex    分片索引
      * @param inputStream   输入流
      * @param size          文件大小
-     * @return Etag
      */
-    String uploadChunk(String finalName, String minioUploadId, Integer chunkIndex, InputStream inputStream, long size);
+    void uploadChunk(String finalName, String minioUploadId, Integer chunkIndex, InputStream inputStream, long size);
 
     /**
      * 完成分片上传.

@@ -15,7 +15,7 @@
         <result column="extension" property="extension" jdbcType="VARCHAR"/>
         <result column="storage_type" property="storageType" jdbcType="VARCHAR"/>
         <result column="uri" property="uri" jdbcType="VARCHAR"/>
-        <result column="is_deleted" property="isDeleted" jdbcType="INTEGER"/>
+        <result column="is_deleted" property="deleted" jdbcType="INTEGER"/>
         <result column="status" property="status" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>

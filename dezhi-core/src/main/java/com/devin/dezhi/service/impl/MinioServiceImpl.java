@@ -58,7 +58,7 @@ public class MinioServiceImpl implements MinioService {
     }
 
     @Override
-    public String uploadChunk(
+    public void uploadChunk(
             final String finalName,
             final String minioUploadId,
             final Integer chunkIndex,
@@ -79,7 +79,6 @@ public class MinioServiceImpl implements MinioService {
             );
 
             UploadPartResponse response = future.get();
-            return response.etag();
         } catch (Exception e) {
             log.error("uploadChunk error: {}", e.getMessage());
             throw new BusinessException("uploadChunk error");

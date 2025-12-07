@@ -31,7 +31,7 @@ import java.math.BigInteger;
  * @since 1.0.0
  */
 @Slf4j
-@Tag(name = "用户服务")
+@Tag(name = "user")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")

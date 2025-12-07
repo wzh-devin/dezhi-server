@@ -35,7 +35,7 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-@Tag(name = "分类")
+@Tag(name = "category")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/category")

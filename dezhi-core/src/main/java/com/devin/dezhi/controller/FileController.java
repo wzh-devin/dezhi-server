@@ -37,7 +37,7 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-@Tag(name = "文件素材表")
+@Tag(name = "file")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/file")

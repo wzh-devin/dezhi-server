@@ -4,6 +4,7 @@ import com.devin.dezhi.config.MinioConfig;
 import com.devin.dezhi.constant.FileConstant;
 import com.devin.dezhi.exception.BusinessException;
 import com.devin.dezhi.service.MinioService;
+import com.google.common.collect.HashMultimap;
 import io.minio.AbortMultipartUploadResponse;
 import io.minio.CreateMultipartUploadResponse;
 import io.minio.ListPartsResponse;
@@ -38,14 +39,18 @@ public class MinioServiceImpl implements MinioService {
 
     @Override
     public String initiateMultipartUpload(
-            final String objectName
+            final String objectName,
+            final String mimeType
     ) {
+        // 创建请求头
+        HashMultimap<String, String> headers = HashMultimap.create();
+        headers.put("Content-Type", mimeType);
         try {
             CompletableFuture<CreateMultipartUploadResponse> future = minioAsyncClient.createMultipartUploadAsync(
                     minioConfig.getBucketName(),
                     null,
                     objectName,
-                    null,
+                    headers,
                     null
             );
 
@@ -120,7 +125,7 @@ public class MinioServiceImpl implements MinioService {
                             null,
                             finalName,
                             FileConstant.MAX_CHUNK_SIZE,
-                            0,
+                            null,
                             minioUploadId,
                             null,
                             null
@@ -157,7 +162,7 @@ public class MinioServiceImpl implements MinioService {
         if (!StringUtils.hasLength(url)) {
             url = minioConfig.getEndpoint();
         }
-        return url;
+        return url + "/" + minioConfig.getBucketName() + "/" + finalName;
     }
 
     @Override

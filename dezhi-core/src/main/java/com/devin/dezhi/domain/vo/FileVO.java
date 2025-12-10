@@ -2,6 +2,10 @@ package com.devin.dezhi.domain.vo;
 
 import java.math.BigInteger;
 import java.util.Date;
+import com.devin.dezhi.enums.FileTypeEnum;
+import com.devin.dezhi.enums.FileUploadStatusEnum;
+import com.devin.dezhi.enums.StatusFlagEnum;
+import com.devin.dezhi.enums.StorageTypeEnum;
 import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
@@ -43,22 +47,22 @@ public class FileVO implements Serializable {
     private BigInteger size;
     
     @Schema(description = "文件MIME类型")
-    private String type;
+    private String mimeType;
     
-    @Schema(description = "文件扩展名")
-    private String extension;
+    @Schema(description = "文件类型")
+    private FileTypeEnum type;
     
     @Schema(description = "文件存储类型")
-    private String storageType;
+    private StorageTypeEnum storageType;
     
     @Schema(description = "文件url地址")
     private String url;
     
     @Schema(description = "是否被删除（0: 正常; 1: 已删除）")
-    private Integer isDeleted;
+    private StatusFlagEnum deleted;
     
     @Schema(description = "文件状态（UPLOADING, FINISHED, FAILED）")
-    private String status;
+    private FileUploadStatusEnum status;
     
     @Schema(description = "创建时间")
     private Date createTime;

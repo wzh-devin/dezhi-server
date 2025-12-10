@@ -22,9 +22,10 @@ public interface MinioService {
      * 初始化分片上传会话.
      *
      * @param objectName 文件名
+     * @param mimeType   文件类型
      * @return Minio会话id
      */
-    String initiateMultipartUpload(String objectName);
+    String initiateMultipartUpload(String objectName, String mimeType);
 
     /**
      * 上传分片.
@@ -73,6 +74,7 @@ public interface MinioService {
 
     /**
      * 获取Minio配置.
+     *
      * @return Minio配置
      */
     MinioConfig getMinioConfig();

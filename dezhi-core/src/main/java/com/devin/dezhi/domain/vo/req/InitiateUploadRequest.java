@@ -2,6 +2,7 @@ package com.devin.dezhi.domain.vo.req;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -28,10 +29,10 @@ public class InitiateUploadRequest {
     private String fileHash;
 
     @Schema(description = "文件大小")
-    @NotBlank(message = "{required.parameter.error}")
+    @NotNull(message = "{required.parameter.error}")
     private Long fileSize;
 
     @Schema(description = "分片总数")
-    @NotBlank(message = "{required.parameter.error}")
+    @NotNull(message = "{required.parameter.error}")
     private Integer totalChunks;
 }

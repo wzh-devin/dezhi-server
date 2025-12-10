@@ -78,17 +78,18 @@ public class FileServiceImpl implements FileService {
             // 文件已经存在
             UploadSession session = new UploadSession();
             // 标记为秒传
-            session.setUploadId("INSTANT");
+            session.setUploadId(FileUploadStatusEnum.INSTANT.name());
             session.setFinalName(file.getFinalName());
-            session.setStatus(FileUploadStatusEnum.FINISHED);
+            session.setStatus(FileUploadStatusEnum.COMPLETED);
             return session;
         }
         String extension = FileTypeUtils.getExtension(initiateUpload.getOriginalName());
         String mimeType = FileTypeUtils.getMimeType(extension);
-        String finalName = IdGenerator.generateUUID() + "." + extension;
+        String type = FileTypeUtils.getType(extension);
+        String finalName = type.toLowerCase() + "/" + IdGenerator.generateUUID() + "." + extension;
         MinioConfig minioConfig = minioService.getMinioConfig();
         // 获取Minio上传id
-        String minioUploadId = minioService.initiateMultipartUpload(finalName);
+        String minioUploadId = minioService.initiateMultipartUpload(finalName, mimeType);
         UploadSession session = new UploadSession();
         session.setUploadId(IdGenerator.generateUUID());
         session.setMinioUploadId(minioUploadId);
@@ -109,9 +110,10 @@ public class FileServiceImpl implements FileService {
         saveFile.setBucketName(minioConfig.getBucketName());
         saveFile.setHash(initiateUpload.getFileHash());
         saveFile.setSize(ConvertUtils.toBigInteger(initiateUpload.getFileSize()));
-        saveFile.setType(mimeType);
-        saveFile.setExtension(extension);
+        saveFile.setMimeType(mimeType);
+        saveFile.setType(type);
         saveFile.setStorageType(StorageTypeEnum.MINIO.name());
+        saveFile.setStatus(FileUploadStatusEnum.UPLOADING.name());
         saveFile.save();
 
         return session;
@@ -176,6 +178,7 @@ public class FileServiceImpl implements FileService {
                 .sorted(Comparator.comparingInt(Part::partNumber))
                 .toArray(Part[]::new);
         if (parts.length != session.getTotalChunks()) {
+            fileDao.updateByHash(session.getFileHash(), FileUploadStatusEnum.FAILED);
             throw new BusinessException(
                     ResultEnum.UPLOAD_ERROR,
                     I18nUtils.getMessage(I18nConstant.CHUNK_COUNT_NOT_MATCH, session.getTotalChunks(), parts.length)
@@ -189,7 +192,7 @@ public class FileServiceImpl implements FileService {
         String uri = minioService.getMinioConfig().getBucketName() + "/" + session.getFinalName();
         File file = fileDao.getByFinalName(session.getFinalName());
         file.setUri(uri);
-        file.setStatus(FileUploadStatusEnum.FINISHED.name());
+        file.setStatus(FileUploadStatusEnum.COMPLETED.name());
         file.update();
 
         // 删除会话缓存
@@ -211,6 +214,11 @@ public class FileServiceImpl implements FileService {
         minioService.cancelMultipartUpload(session.getFinalName(), session.getMinioUploadId());
         // 删除会话缓存
         RedisUtils.delete(RedisKey.generateRedisKey(RedisKey.UPLOAD_SESSION_KEY, uploadId));
+        // 删除数据库文件
+        fileDao.lambdaUpdate()
+                .eq(File::getStatus, FileUploadStatusEnum.UPLOADING.name())
+                .eq(File::getHash, session.getFileHash())
+                .remove();
     }
 
     @Override
@@ -262,9 +270,7 @@ public class FileServiceImpl implements FileService {
     private void checkUploadFile(final InitiateUploadRequest initiateUpload) {
         // 校验文件类型
         String extension = FileTypeUtils.getExtension(initiateUpload.getOriginalName());
-        if (!FileTypeUtils.isAllowedImageType(extension)) {
-            throw new ValidateException(ResultEnum.FILE_ERROR.getCode(), I18nConstant.FILE_TYPE_NOT_ALLOWED);
-        }
+        FileTypeUtils.checkAllowedFileType(extension);
 
         // 校验文件大小
         if (!FileTypeUtils.isValidFileSize(initiateUpload.getFileSize())) {

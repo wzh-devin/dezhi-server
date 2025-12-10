@@ -1,6 +1,8 @@
 package com.devin.dezhi.domain.vo;
 
+import com.devin.dezhi.enums.FileTypeEnum;
 import com.devin.dezhi.enums.StatusFlagEnum;
+import com.devin.dezhi.enums.StorageTypeEnum;
 import com.devin.dezhi.vo.CommonQueryVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -30,13 +32,13 @@ public class FileQueryVO extends CommonQueryVO implements Serializable {
      * 存储类型.
      */
     @Schema(description = "存储类型")
-    private String storageType;
+    private StorageTypeEnum storageType;
 
     /**
      * 文件类型.
      */
     @Schema(description = "文件类型")
-    private String type;
+    private FileTypeEnum type;
 
     /**
      * 删除状态.

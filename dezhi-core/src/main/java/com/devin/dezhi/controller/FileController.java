@@ -67,12 +67,12 @@ public class FileController {
      * @param file       文件
      * @return 响应结果
      */
-    @PostMapping("/upload/chunk")
+    @PostMapping(value = "/upload/chunk", headers = "content-type=multipart/form-data")
     @Operation(summary = "上传文件分片")
     public ApiResult<Void> uploadChunk(
-            @Parameter(description = "会话上传id") @RequestPart("uploadId") final String uploadId,
-            @Parameter(description = "分片索引") @RequestPart("chunkIndex") final String chunkIndex,
-            @Parameter(description = "文件") @RequestPart("file") final MultipartFile file
+            @Parameter(name = "uploadId", description = "会话上传id") @RequestPart("uploadId") final String uploadId,
+            @Parameter(name = "chunkIndex", description = "分片索引") @RequestPart("chunkIndex") final String chunkIndex,
+            @Parameter(name = "file", description = "文件") @RequestPart("file") final MultipartFile file
     ) {
         fileService.uploadChunk(uploadId, ConvertUtils.toInteger(chunkIndex), file);
         return ApiResult.success();

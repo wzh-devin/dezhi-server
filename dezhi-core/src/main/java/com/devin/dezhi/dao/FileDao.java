@@ -1,5 +1,6 @@
 package com.devin.dezhi.dao;
 
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.devin.dezhi.domain.entity.File;
 import com.devin.dezhi.domain.vo.FileQueryVO;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import java.util.Objects;
 
 /**
  * 2025/12/05 23:51:00.
@@ -37,7 +39,7 @@ public class FileDao extends ServiceImpl<FileMapper, File> {
     public File getByHash(final String fileHash) {
         return lambdaQuery()
                 .eq(File::getHash, fileHash)
-                .eq(File::getStatus, FileUploadStatusEnum.FINISHED.name())
+                .eq(File::getStatus, FileUploadStatusEnum.COMPLETED.name())
                 .one();
     }
 
@@ -66,12 +68,34 @@ public class FileDao extends ServiceImpl<FileMapper, File> {
                 queryVO.getPageSize()
         );
 
-        return lambdaQuery()
+        LambdaQueryChainWrapper<File> queryWrapper = lambdaQuery()
                 .eq(File::getDeleted, queryVO.getDeleted().getStatus())
-                .like(StringUtils.hasLength(queryVO.getKeyword()), File::getOriginalName, queryVO.getKeyword())
-                .eq(StringUtils.hasLength(queryVO.getStorageType()), File::getStorageType, queryVO.getStorageType())
-                .eq(StringUtils.hasLength(queryVO.getType()), File::getType, queryVO.getType())
+                .like(StringUtils.hasLength(queryVO.getKeyword()), File::getOriginalName, queryVO.getKeyword());
+
+        if (Objects.nonNull(queryVO.getStorageType())) {
+            queryWrapper.eq(File::getStorageType, queryVO.getStorageType().name());
+        }
+
+        if (Objects.nonNull(queryVO.getType())) {
+            queryWrapper.eq(File::getType, queryVO.getType().name());
+        }
+
+        return queryWrapper
                 .orderByDesc(File::getUpdateTime)
                 .page(page);
+    }
+
+    /**
+     * 通过文件hash更新文件.
+     *
+     * @param fileHash 文件hash
+     * @param fileUploadStatusEnum 文件上传状态
+     */
+    public void updateByHash(final String fileHash, final FileUploadStatusEnum fileUploadStatusEnum) {
+        lambdaUpdate()
+                .eq(File::getHash, fileHash)
+                .set(File::getStatus, fileUploadStatusEnum.name())
+                .set(File::getDeleted, StatusFlagEnum.DELETED.getStatus())
+                .update();
     }
 }

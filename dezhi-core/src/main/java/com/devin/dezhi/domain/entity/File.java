@@ -67,16 +67,16 @@ public class File implements Serializable {
     private BigInteger size;      
 
     /**
-     * 文件MIME类型.
+     * 文件类型.
      */
     @TableField("type")
     private String type;      
 
     /**
-     * 文件扩展名.
+     * 文件MIME类型.
      */
-    @TableField("extension")
-    private String extension;      
+    @TableField("mime_type")
+    private String mimeType;
 
     /**
      * 文件存储类型.

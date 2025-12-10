@@ -20,7 +20,12 @@ public enum FileUploadStatusEnum {
     /**
      * 上传完成.
      */
-    FINISHED,
+    COMPLETED,
+
+    /**
+     * 秒传.
+     */
+    INSTANT,
 
     /**
      * 上传失败.

@@ -112,8 +112,8 @@ CREATE TABLE dezhi.dz_file(
                               bucket_name VARCHAR(255) NOT NULL,
                               hash VARCHAR(128) NOT NULL,
                               size INT8 NOT NULL,
-                              type VARCHAR(100) NOT NULL,
-                              extension VARCHAR(20) NOT NULL,
+                              type VARCHAR(10) NOT NULL,
+                              mime_type VARCHAR(100) NOT NULL,
                               storage_type VARCHAR(10) NOT NULL,
                               uri VARCHAR(255),
                               is_deleted INT2 NOT NULL DEFAULT 0,
@@ -128,8 +128,8 @@ COMMENT ON COLUMN dezhi.dz_file.final_name IS '存储的文件名称';
 COMMENT ON COLUMN dezhi.dz_file.bucket_name IS '存储桶名称';
 COMMENT ON COLUMN dezhi.dz_file.hash IS '文件哈希值';
 COMMENT ON COLUMN dezhi.dz_file.size IS '文件大小';
-COMMENT ON COLUMN dezhi.dz_file.type IS '文件MIME类型';
-COMMENT ON COLUMN dezhi.dz_file.extension IS '文件扩展名';
+COMMENT ON COLUMN dezhi.dz_file.type IS '文件类型（IMAGE, ZIP, PDF）';
+COMMENT ON COLUMN dezhi.dz_file.mime_type IS '文件MIME类型';
 COMMENT ON COLUMN dezhi.dz_file.storage_type IS '文件存储类型';
 COMMENT ON COLUMN dezhi.dz_file.uri IS '文件uri地址';
 COMMENT ON COLUMN dezhi.dz_file.is_deleted IS '是否被删除（0: 正常; 1: 已删除）';

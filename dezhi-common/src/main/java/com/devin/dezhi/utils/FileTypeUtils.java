@@ -1,6 +1,12 @@
 package com.devin.dezhi.utils;
 
 import com.devin.dezhi.constant.FileConstant;
+import com.devin.dezhi.constant.I18nConstant;
+import com.devin.dezhi.enums.FileTypeEnum;
+import com.devin.dezhi.exception.ValidateException;
+import com.devin.dezhi.utils.i18n.I18nUtils;
+import com.devin.dezhi.utils.r.ResultEnum;
+import org.springframework.util.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -23,6 +29,14 @@ public class FileTypeUtils {
             "jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"
     );
 
+    private static final Set<String> PDF_EXTENSIONS = Set.of(
+            "pdf"
+    );
+
+    private static final Set<String> ZIP_EXTENSIONS = Set.of(
+            "zip", "rar", "7z", "tar", "gz", "bz2", "xz"
+    );
+
     static {
         EXTENSION_TO_MIME.put("jpg", "image/jpeg");
         EXTENSION_TO_MIME.put("jpeg", "image/jpeg");
@@ -31,6 +45,14 @@ public class FileTypeUtils {
         EXTENSION_TO_MIME.put("bmp", "image/bmp");
         EXTENSION_TO_MIME.put("webp", "image/webp");
         EXTENSION_TO_MIME.put("svg", "image/svg+xml");
+        EXTENSION_TO_MIME.put("pdf", "application/pdf");
+        EXTENSION_TO_MIME.put("zip", "application/zip");
+        EXTENSION_TO_MIME.put("rar", "application/x-rar-compressed");
+        EXTENSION_TO_MIME.put("tar", "application/x-tar");
+        EXTENSION_TO_MIME.put("gz", "application/gzip");
+        EXTENSION_TO_MIME.put("bz2", "application/x-bzip2");
+        EXTENSION_TO_MIME.put("xz", "application/x-xz");
+        EXTENSION_TO_MIME.put("7z", "application/x-7z-compressed");
     }
 
     /**
@@ -47,6 +69,24 @@ public class FileTypeUtils {
                 extension.toLowerCase(),
                 "application/octet-stream"
         );
+    }
+
+    /**
+     * 根据文件扩展名获取文件类型.
+     *
+     * @param extension 扩展名
+     * @return 文件类型
+     */
+    public static String getType(final String extension) {
+        if (IMAGE_EXTENSIONS.contains(extension)) {
+            return FileTypeEnum.IMAGE.name();
+        } else if (PDF_EXTENSIONS.contains(extension)) {
+            return FileTypeEnum.PDF.name();
+        } else if (ZIP_EXTENSIONS.contains(extension)) {
+            return FileTypeEnum.ZIP.name();
+        } else {
+            throw new ValidateException(ResultEnum.FILE_ERROR.getCode(), I18nConstant.FILE_TYPE_NOT_ALLOWED);
+        }
     }
 
     /**
@@ -67,13 +107,20 @@ public class FileTypeUtils {
     }
 
     /**
-     * 验证是否为允许的图片类型.
+     * 验证是否为允许的文件类型.
      *
      * @param extension 扩展名
-     * @return 是否为允许的图片类型
      */
-    public static boolean isAllowedImageType(final String extension) {
-        return extension != null && IMAGE_EXTENSIONS.contains(extension.toLowerCase());
+    public static void checkAllowedFileType(final String extension) {
+        if (
+                !StringUtils.hasLength(extension)
+                        || !IMAGE_EXTENSIONS.contains(extension)
+                        && !PDF_EXTENSIONS.contains(extension)
+                        && !ZIP_EXTENSIONS.contains(extension)
+        ) {
+            throw new ValidateException(ResultEnum.FILE_ERROR.getCode(), I18nUtils.getMessage(I18nConstant.FILE_TYPE_NOT_ALLOWED));
+        }
+
     }
 
     /**

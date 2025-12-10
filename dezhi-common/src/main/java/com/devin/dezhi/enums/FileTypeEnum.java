@@ -31,6 +31,6 @@ public enum FileTypeEnum {
     /**
      * 压缩包.
      */
-    ZIP;
+    ZIP
 
 }

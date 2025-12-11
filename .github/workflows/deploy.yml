@@ -7,7 +7,9 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  # 阿里云镜像仓库配置
+  ALIYUN_REGISTRY: registry.cn-hangzhou.aliyuncs.com  # 根据你的地域修改
+  ALIYUN_NAMESPACE: your-namespace  # 你的命名空间
   IMAGE_NAME: dezhi-server
   IMAGE_TAG: ${{ github.sha }}
 
@@ -43,32 +45,33 @@ jobs:
           fi
           echo "✅ JAR 文件已生成"
 
-      # ==================== Docker 构建 ====================
+      # ==================== Docker 构建（阿里云 ACR）====================
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: 🔑 Login to Docker Hub
+      - name: 🔑 Login to Aliyun Container Registry
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ${{ env.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
+          password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
-      - name: 🏗️ Build and push Docker image
+      - name: 🏗️ Build and push Docker image to Aliyun ACR
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}
-            ${{ secrets.DOCKER_USERNAME }}/dezhi-server:latest
+            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: 📦 Image Info
         run: |
           echo "✅ Docker 镜像构建并推送成功！"
-          echo "📦 镜像: ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}"
+          echo "📦 镜像地址: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}"
           echo "🏷️ 标签: latest, ${{ github.sha }}"
 
       # ==================== 上传配置文件 ====================
@@ -120,15 +123,13 @@ jobs:
             echo "📋 当前目录内容:"
             ls -la
             
-            echo "📄 docker-compose.yaml 内容:"
-            cat docker-compose.yaml
-            
-            echo "🔐 登录 Docker Hub..."
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            echo "🔐 登录阿里云容器镜像服务..."
+            echo "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" | docker login --username=${{ secrets.ALIYUN_REGISTRY_USERNAME }} --password-stdin ${{ env.ALIYUN_REGISTRY }}
             
             echo "📝 设置环境变量..."
             export IMAGE_TAG=${{ github.sha }}
-            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            export ALIYUN_REGISTRY=${{ env.ALIYUN_REGISTRY }}
+            export ALIYUN_NAMESPACE=${{ env.ALIYUN_NAMESPACE }}
             
             echo "⬇️ 拉取最新镜像..."
             docker-compose pull dezhi-server
@@ -160,7 +161,7 @@ jobs:
             echo "🧹 清理旧镜像..."
             docker image prune -af --filter "until=24h"
             
-            docker logout
+            docker logout ${{ env.ALIYUN_REGISTRY }}
             echo "✅ 部署完成！"
 
       - name: ✅ Deployment Summary
@@ -169,7 +170,7 @@ jobs:
           echo "=========================================="
           echo "🎉 部署成功！"
           echo "=========================================="
-          echo "📦 镜像: ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}"
+          echo "📦 镜像: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           echo "🌍 服务器: ${{ secrets.SERVER_HOST }}"
           echo "📄 配置文件: docker-compose.yaml 已更新"
           echo "⏰ 时间: $(date '+%Y-%m-%d %H:%M:%S')"
@@ -182,8 +183,4 @@ jobs:
           echo "💥 部署失败！"
           echo "=========================================="
           echo "请检查上面的错误日志"
-          echo "常见问题："
-          echo "1. 检查 docker-compose.yaml 文件路径是否正确"
-          echo "2. 检查服务器上 Docker 服务是否正常"
-          echo "3. 检查镜像是否成功推送到 Docker Hub"
           echo "=========================================="

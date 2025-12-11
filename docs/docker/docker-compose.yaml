@@ -1,0 +1,28 @@
+services:
+  dezhi-server:
+    image: ${DOCKER_USERNAME}/myapp-backend:${IMAGE_TAG:-latest}
+    container_name: dezhi-server
+    restart: always
+    ports:
+      - "14001:14001"
+    environment:
+      # Java Options
+      JAVA_OPTS: ${JAVA_OPTS}
+      # Postgres
+      POSTGRESQL_HOST: ${POSTGRESQL_HOST}
+      POSTGRESQL_PORT: ${POSTGRESQL_PORT}
+      POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME}
+      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRESQL_DATABASE: ${POSTGRESQL_DATABASE}
+      POSTGRESQL_SCHEMA: ${POSTGRESQL_SCHEMA}
+      # Redis
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # Minio
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_EXPORT_URL: ${MINIO_EXPORT_URL}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET_NAME}
+

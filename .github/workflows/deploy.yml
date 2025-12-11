@@ -1,4 +1,5 @@
 name: deploy
+
 on:
   push:
     branches:
@@ -10,13 +11,13 @@ on:
       - 'pom.xml'
       - 'Dockerfile'
   workflow_dispatch:
-
   pull_request:
     branches:
       - main
 
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  IMAGE_NAME: dezhi-server  # 定义镜像名称
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -24,53 +25,84 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout code
+      - name: 🔍 Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
+      - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Login to Docker hub
+      - name: 🔑 Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push
+      - name: 🏗️ Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ github.repository_owner }}/${{ github.repository }}:${{ github.sha }}
-            ${{ secrets.DOCKER_USERNAME }}/${{ github.repository_owner }}/${{ github.repository }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/dezhi-server:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy to Server
+      - name: 📦 Image Info
+        run: |
+          echo "✅ Image built and pushed successfully!"
+          echo "📦 Image: ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}"
+          echo "🏷️ Tags: latest, ${{ github.sha }}"
+
+      - name: 🚀 Deploy to Server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            echo "🔄 Starting deployment..."
             cd /root/dezhi/server
             
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            echo "🔐 Logging into Docker Hub..."
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             
+            echo "📝 Setting environment variables..."
             export IMAGE_TAG=${{ github.sha }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             
+            echo "⬇️ Pulling latest image..."
             docker-compose pull dezhi-server
             
+            echo "🔄 Restarting container..."
             docker-compose up -d dezhi-server
             
+            echo "⏳ Waiting for service to start..."
             sleep 20
             
+            echo "📊 Container status:"
             docker-compose ps
+            
+            echo "📝 Recent logs:"
             docker-compose logs --tail=30 dezhi-server
             
-            docker image prune -ad --filter "until=24h"
+            echo "🧹 Cleaning up old images..."
+            docker image prune -af --filter "until=24h"
+            
             docker logout
+            echo "✅ Deployment completed!"
 
+      - name: ✅ Deployment Summary
+        if: success()
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "📦 Image: ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}"
+          echo "🌍 Server: ${{ secrets.SERVER_HOST }}"
+          echo "⏰ Time: $(date '+%Y-%m-%d %H:%M:%S')"
+
+      - name: ❌ Deployment Failed
+        if: failure()
+        run: |
+          echo "💥 Deployment failed!"
+          echo "Please check the logs above for details."

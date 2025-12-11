@@ -1,81 +1,31 @@
-name: Test SSH Connection
+# .github/workflows/test-ssh-password.yml
+name: Test SSH with Password
 
 on:
-  workflow_dispatch:  # 只能手动触发
+  workflow_dispatch:
 
 jobs:
-  test-ssh:
+  test:
     runs-on: ubuntu-22.04
 
     steps:
       - name: 🔍 显示配置信息
         run: |
           echo "=========================================="
-          echo "测试 SSH 连接配置"
+          echo "使用密码测试 SSH 连接"
           echo "=========================================="
           echo "服务器地址: ${{ secrets.SERVER_HOST }}"
           echo "用户名: ${{ secrets.SERVER_USERNAME }}"
           echo "=========================================="
 
-      - name: 🔑 检查 SSH 密钥格式
-        run: |
-          echo "检查 SSH 密钥..."
-          
-          # 检查密钥是否存在
-          if [ -z "${{ secrets.SERVER_SSH_KEY }}" ]; then
-            echo "❌ 错误: SERVER_SSH_KEY 未配置！"
-            exit 1
-          fi
-          
-          # 显示密钥的第一行和最后一行
-          echo "密钥开头:"
-          echo "${{ secrets.SERVER_SSH_KEY }}" | head -n 1
-          echo ""
-          echo "密钥结尾:"
-          echo "${{ secrets.SERVER_SSH_KEY }}" | tail -n 1
-          echo ""
-          echo "密钥总行数: $(echo "${{ secrets.SERVER_SSH_KEY }}" | wc -l)"
-          
-          # 检查密钥格式
-          FIRST_LINE=$(echo "${{ secrets.SERVER_SSH_KEY }}" | head -n 1)
-          LAST_LINE=$(echo "${{ secrets.SERVER_SSH_KEY }}" | tail -n 1)
-          
-          if [[ "$FIRST_LINE" == *"BEGIN"* ]] && [[ "$LAST_LINE" == *"END"* ]]; then
-            echo "✅ 密钥格式看起来正确"
-          else
-            echo "❌ 警告: 密钥格式可能不正确"
-            echo "第一行应该包含 BEGIN，最后一行应该包含 END"
-          fi
-
-      - name: 🌐 测试网络连通性
-        run: |
-          echo "测试服务器网络连通性..."
-          
-          if ping -c 3 ${{ secrets.SERVER_HOST }}; then
-            echo "✅ 服务器可以 ping 通"
-          else
-            echo "⚠️ 警告: 无法 ping 通服务器（某些服务器可能禁用了 ICMP）"
-          fi
-          
-          echo ""
-          echo "测试 SSH 端口 (22) 是否开放..."
-          
-          if timeout 5 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.SERVER_HOST }}/22"; then
-            echo "✅ SSH 端口 22 是开放的"
-          else
-            echo "❌ 错误: SSH 端口 22 无法连接"
-            exit 1
-          fi
-
-      - name: 🔐 测试 SSH 连接（简单测试）
+      - name: 🔐 测试 SSH 连接（密码方式）
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          password: ${{ secrets.SERVER_PASSWORD }}  # 使用密码
           port: 22
           timeout: 30s
-          command_timeout: 30s
           debug: true
           script: |
             echo "=========================================="
@@ -85,8 +35,12 @@ jobs:
             echo "当前用户: $(whoami)"
             echo "当前目录: $(pwd)"
             echo "系统信息: $(uname -a)"
+            echo ""
             echo "磁盘使用:"
             df -h | head -5
+            echo ""
+            echo "内存使用:"
+            free -h
             echo "=========================================="
 
       - name: 📁 检查部署目录
@@ -94,73 +48,46 @@ jobs:
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           port: 22
           script: |
             echo "检查部署目录..."
             
             if [ -d "/root/dezhi/server" ]; then
               echo "✅ 目录存在: /root/dezhi/server"
-              echo "目录内容:"
               ls -la /root/dezhi/server
             else
-              echo "❌ 目录不存在: /root/dezhi/server"
-              echo "需要创建目录"
+              echo "⚠️ 目录不存在，创建目录..."
+              mkdir -p /root/dezhi/server
+              echo "✅ 目录已创建"
             fi
 
-      - name: 🐳 检查 Docker 和 Docker Compose
+      - name: 🐳 检查 Docker
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           port: 22
           script: |
             echo "检查 Docker..."
-            
             if command -v docker &> /dev/null; then
-              echo "✅ Docker 已安装"
-              docker --version
+              echo "✅ Docker 已安装: $(docker --version)"
             else
               echo "❌ Docker 未安装"
             fi
             
             echo ""
             echo "检查 Docker Compose..."
-            
             if command -v docker-compose &> /dev/null; then
-              echo "✅ Docker Compose 已安装"
-              docker-compose --version
+              echo "✅ Docker Compose 已安装: $(docker-compose --version)"
             else
               echo "❌ Docker Compose 未安装"
             fi
-            
-            echo ""
-            echo "检查 Docker 服务状态..."
-            systemctl status docker --no-pager || service docker status
 
-      - name: ✅ 测试总结
+      - name: ✅ 测试成功
         if: success()
         run: |
           echo "=========================================="
-          echo "🎉 所有测试通过！"
-          echo "=========================================="
-          echo "✅ SSH 密钥格式正确"
-          echo "✅ 网络连接正常"
-          echo "✅ SSH 认证成功"
-          echo "✅ 可以执行远程命令"
-          echo "=========================================="
-          echo "现在可以使用完整的部署 workflow 了！"
-
-      - name: ❌ 测试失败
-        if: failure()
-        run: |
-          echo "=========================================="
-          echo "💥 测试失败！"
-          echo "=========================================="
-          echo "请检查:"
-          echo "1. GitHub Secrets 配置是否正确"
-          echo "2. 服务器 SSH 密钥是否正确添加"
-          echo "3. 服务器防火墙是否开放 22 端口"
-          echo "4. 服务器 SSH 服务是否正常运行"
+          echo "🎉 SSH 密码连接测试通过！"
           echo "=========================================="

@@ -9,6 +9,7 @@ on:
       - 'src/**'
       - 'pom.xml'
       - 'Dockerfile'
+  workflow_dispatch:
 
   pull_request:
     branches:

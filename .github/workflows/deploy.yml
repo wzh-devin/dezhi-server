@@ -37,7 +37,7 @@ jobs:
           ls -lh dezhi-core/target/*.jar
           
           # 验证 JAR 文件存在
-          if [ ! -f dezhi-core/target/dezhi-core-0.0.1.jar ]; then
+          if [ ! -f dezhi-core/target/dezhi-core-1.0-SNAPSHOT.jar ]; then
             echo "❌ JAR 文件不存在！"
             exit 1
           fi

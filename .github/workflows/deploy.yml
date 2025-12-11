@@ -4,20 +4,11 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*.*.*'
-    paths:
-      - 'src/**'
-      - 'pom.xml'
-      - 'Dockerfile'
   workflow_dispatch:
-  pull_request:
-    branches:
-      - main
 
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  IMAGE_NAME: dezhi-server  # 定义镜像名称
+  IMAGE_NAME: dezhi-server
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -28,6 +19,31 @@ jobs:
       - name: 🔍 Checkout code
         uses: actions/checkout@v3
 
+      # ==================== Maven 构建 ====================
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: 🔨 Build with Maven
+        run: |
+          echo "开始 Maven 构建..."
+          mvn clean package -DskipTests -B
+          echo "Maven 构建完成！"
+          
+          echo "检查生成的 JAR 文件:"
+          ls -lh dezhi-core/target/*.jar
+          
+          # 验证 JAR 文件存在
+          if [ ! -f dezhi-core/target/dezhi-core-0.0.1.jar ]; then
+            echo "❌ JAR 文件不存在！"
+            exit 1
+          fi
+          echo "✅ JAR 文件已生成"
+
+      # ==================== Docker 构建 ====================
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -51,10 +67,11 @@ jobs:
 
       - name: 📦 Image Info
         run: |
-          echo "✅ Image built and pushed successfully!"
-          echo "📦 Image: ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}"
-          echo "🏷️ Tags: latest, ${{ github.sha }}"
+          echo "✅ Docker 镜像构建并推送成功！"
+          echo "📦 镜像: ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}"
+          echo "🏷️ 标签: latest, ${{ github.sha }}"
 
+      # ==================== 部署到服务器 ====================
       - name: 🚀 Deploy to Server
         uses: appleboy/ssh-action@master
         with:
@@ -62,47 +79,41 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "🔄 Starting deployment..."
+            echo "🔄 开始部署..."
             cd /root/dezhi/server
             
-            echo "🔐 Logging into Docker Hub..."
+            echo "🔐 登录 Docker Hub..."
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             
-            echo "📝 Setting environment variables..."
+            echo "📝 设置环境变量..."
             export IMAGE_TAG=${{ github.sha }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             
-            echo "⬇️ Pulling latest image..."
+            echo "⬇️ 拉取最新镜像..."
             docker-compose pull dezhi-server
             
-            echo "🔄 Restarting container..."
+            echo "🔄 重启容器..."
             docker-compose up -d dezhi-server
             
-            echo "⏳ Waiting for service to start..."
-            sleep 20
+            echo "⏳ 等待服务启动..."
+            sleep 30
             
-            echo "📊 Container status:"
+            echo "📊 容器状态:"
             docker-compose ps
             
-            echo "📝 Recent logs:"
-            docker-compose logs --tail=30 dezhi-server
+            echo "📝 最近日志:"
+            docker-compose logs --tail=50 dezhi-server
             
-            echo "🧹 Cleaning up old images..."
+            echo "🧹 清理旧镜像..."
             docker image prune -af --filter "until=24h"
             
             docker logout
-            echo "✅ Deployment completed!"
+            echo "✅ 部署完成！"
 
       - name: ✅ Deployment Summary
         if: success()
         run: |
-          echo "🎉 Deployment successful!"
-          echo "📦 Image: ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}"
-          echo "🌍 Server: ${{ secrets.SERVER_HOST }}"
-          echo "⏰ Time: $(date '+%Y-%m-%d %H:%M:%S')"
-
-      - name: ❌ Deployment Failed
-        if: failure()
-        run: |
-          echo "💥 Deployment failed!"
-          echo "Please check the logs above for details."
+          echo "🎉 部署成功！"
+          echo "📦 镜像: ${{ secrets.DOCKER_USERNAME }}/dezhi-server:${{ github.sha }}"
+          echo "🌍 服务器: ${{ secrets.SERVER_HOST }}"
+          echo "⏰ 时间: $(date '+%Y-%m-%d %H:%M:%S')"

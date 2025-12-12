@@ -7,6 +7,9 @@ on:
   workflow_dispatch:
 
 env:
+  # 阿里云镜像仓库配置
+  ALIYUN_REGISTRY: registry.cn-hangzhou.aliyuncs.com  # 根据你的地域修改
+  ALIYUN_NAMESPACE: wzh-devin  # 你的命名空间
   IMAGE_NAME: dezhi-server
   IMAGE_TAG: ${{ github.sha }}
 
@@ -49,7 +52,7 @@ jobs:
       - name: 🔑 Login to Aliyun Container Registry
         uses: docker/login-action@v2
         with:
-          registry: ${{ secrets.ALIYUN_REGISTRY }}
+          registry: ${{ env.ALIYUN_REGISTRY }}
           username: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
           password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
@@ -60,15 +63,15 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: 📦 Image Info
         run: |
           echo "✅ Docker 镜像构建并推送成功！"
-          echo "📦 镜像地址: ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}"
+          echo "📦 镜像地址: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}"
           echo "🏷️ 标签: latest, ${{ github.sha }}"
 
       # ==================== 上传配置文件 ====================
@@ -125,8 +128,8 @@ jobs:
             
             echo "📝 设置环境变量..."
             export IMAGE_TAG=${{ github.sha }}
-            export ALIYUN_REGISTRY=${{ secrets.ALIYUN_REGISTRY }}
-            export ALIYUN_NAMESPACE=${{ secrets.ALIYUN_NAMESPACE }}
+            export ALIYUN_REGISTRY=${{ env.ALIYUN_REGISTRY }}
+            export ALIYUN_NAMESPACE=${{ env.ALIYUN_NAMESPACE }}
             
             echo "⬇️ 拉取最新镜像..."
             docker-compose pull dezhi-server
@@ -158,7 +161,7 @@ jobs:
             echo "🧹 清理旧镜像..."
             docker image prune -af --filter "until=24h"
             
-            docker logout ${{ secrets.ALIYUN_REGISTRY }}
+            docker logout ${{ env.ALIYUN_REGISTRY }}
             echo "✅ 部署完成！"
 
       - name: ✅ Deployment Summary
@@ -167,7 +170,7 @@ jobs:
           echo "=========================================="
           echo "🎉 部署成功！"
           echo "=========================================="
-          echo "📦 镜像: ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          echo "📦 镜像: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           echo "🌍 服务器: ${{ secrets.SERVER_HOST }}"
           echo "📄 配置文件: docker-compose.yaml 已更新"
           echo "⏰ 时间: $(date '+%Y-%m-%d %H:%M:%S')"

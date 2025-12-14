@@ -8,7 +8,7 @@ on:
 
 env:
   # 阿里云镜像仓库配置
-  ALIYUN_REGISTRY: registry.cn-hangzhou.aliyuncs.com  # 根据你的地域修改
+  ALIYUN_REGISTRY: registry.cn-hangzhou.aliyuncs.com/wzh-devin  # 根据你的地域修改
   ALIYUN_NAMESPACE: wzh-devin  # 你的命名空间
   IMAGE_NAME: dezhi-server
   IMAGE_TAG: ${{ github.sha }}

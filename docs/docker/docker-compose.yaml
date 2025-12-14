@@ -1,6 +1,6 @@
 services:
   dezhi-server:
-    image: ${DOCKER_USERNAME}/myapp-backend:${IMAGE_TAG:-latest}
+    image: ${ALIYUN_REGISTRY}/${ALIYUN_NAMESPACE}/dezhi-server:${IMAGE_TAG:-latest}
     container_name: dezhi-server
     restart: always
     ports:

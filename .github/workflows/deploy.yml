@@ -8,8 +8,8 @@ on:
 
 env:
   # 阿里云镜像仓库配置
-  ALIYUN_REGISTRY: registry.cn-hangzhou.aliyuncs.com/wzh-devin  # 根据你的地域修改
-  ALIYUN_NAMESPACE: wzh-devin  # 你的命名空间
+  ALIYUN_REGISTRY: registry.cn-hangzhou.aliyuncs.com
+  ALIYUN_NAMESPACE: wzh-devin
   IMAGE_NAME: dezhi-server
   IMAGE_TAG: ${{ github.sha }}
 
@@ -48,6 +48,22 @@ jobs:
       # ==================== Docker 构建（阿里云 ACR）====================
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+
+      # 添加调试步骤：显示用户名信息
+      - name: 🔍 Debug - Check Aliyun Credentials
+        run: |
+          echo "=========================================="
+          echo "🔍 阿里云镜像仓库配置检查"
+          echo "=========================================="
+          echo "Registry: ${{ env.ALIYUN_REGISTRY }}"
+          echo "Namespace: ${{ env.ALIYUN_NAMESPACE }}"
+          echo "Username (前3位): ${ALIYUN_USERNAME:0:3}***"
+          echo "Username 长度: ${#ALIYUN_USERNAME}"
+          echo "Password 长度: ${#ALIYUN_PASSWORD}"
+          echo "=========================================="
+        env:
+          ALIYUN_USERNAME: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
+          ALIYUN_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
       - name: 🔑 Login to Aliyun Container Registry
         uses: docker/login-action@v2
@@ -123,8 +139,26 @@ jobs:
             echo "📋 当前目录内容:"
             ls -la
             
+            # 调试信息：显示用户名
+            echo "=========================================="
+            echo "🔍 阿里云登录配置检查"
+            echo "=========================================="
+            echo "Registry: ${{ env.ALIYUN_REGISTRY }}"
+            echo "Username (前3位): ${{ secrets.ALIYUN_REGISTRY_USERNAME }} | cut -c1-3"
+            echo "Username 完整: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}"
+            echo "=========================================="
+            
             echo "🔐 登录阿里云容器镜像服务..."
             echo "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" | docker login --username=${{ secrets.ALIYUN_REGISTRY_USERNAME }} --password-stdin ${{ env.ALIYUN_REGISTRY }}
+            
+            if [ $? -eq 0 ]; then
+              echo "✅ 登录成功"
+            else
+              echo "❌ 登录失败"
+              echo "尝试的用户名: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}"
+              echo "Registry 地址: ${{ env.ALIYUN_REGISTRY }}"
+              exit 1
+            fi
             
             echo "📝 设置环境变量..."
             export IMAGE_TAG=${{ github.sha }}
@@ -183,4 +217,8 @@ jobs:
           echo "💥 部署失败！"
           echo "=========================================="
           echo "请检查上面的错误日志"
+          echo "常见问题："
+          echo "1. 检查 ALIYUN_REGISTRY_USERNAME 格式"
+          echo "2. 检查 ALIYUN_REGISTRY_PASSWORD 是否正确"
+          echo "3. 检查阿里云镜像仓库地址是否正确"
           echo "=========================================="

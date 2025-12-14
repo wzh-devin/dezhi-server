@@ -12,57 +12,79 @@ env:
   IMAGE_NAME: dezhi-server
 
 jobs:
-  build-and-deploy:
+  # ==================== 检查标签 ====================
+  check-tag:
     runs-on: ubuntu-22.04
+    outputs:
+      has_tag: ${{ steps.check.outputs.has_tag }}
+      version: ${{ steps.check.outputs.version }}
 
     steps:
       - name: 🔍 Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # 获取完整历史，包括所有标签
 
-      # ==================== 检查并提取版本号 ====================
-      - name: 📝 Check tag and extract version
-        id: version
+      - name: 🏷️ Check if commit has tag
+        id: check
         run: |
           # 获取当前提交的所有标签
           TAGS=$(git tag --points-at HEAD)
           
           echo "=========================================="
-          echo "🔍 检查版本标签"
+          echo "🔍 检查 main 分支标签"
           echo "=========================================="
           echo "📍 当前提交: ${{ github.sha }}"
           echo "🌿 当前分支: ${{ github.ref }}"
           echo ""
           
           if [ -z "$TAGS" ]; then
-            echo "⚠️  当前提交没有标签"
-            echo "🏷️  镜像标签: latest"
+            echo "❌ 错误: main 分支提交必须打标签才能触发部署！"
+            echo ""
+            echo "💡 请先打标签后再推送："
+            echo "   git tag v1.0.0"
+            echo "   git push origin main --tags"
+            echo ""
             echo "=========================================="
-            echo "has_tag=false" >> $GITHUB_OUTPUT
-            echo "version=latest" >> $GITHUB_OUTPUT
-            echo "image_tags=latest" >> $GITHUB_OUTPUT
+            exit 1
           else
             # 获取第一个 v*.*.* 格式的标签
             VERSION_TAG=$(echo "$TAGS" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
           
             if [ -z "$VERSION_TAG" ]; then
-              echo "⚠️  当前标签不符合 v*.*.* 格式"
+              echo "❌ 错误: 未找到符合 v*.*.* 格式的标签！"
+              echo ""
               echo "📋 当前标签: $TAGS"
-              echo "🏷️  镜像标签: latest"
+              echo "✅ 需要格式: v1.0.0, v2.1.3 等"
+              echo ""
               echo "=========================================="
-              echo "has_tag=false" >> $GITHUB_OUTPUT
-              echo "version=latest" >> $GITHUB_OUTPUT
-              echo "image_tags=latest" >> $GITHUB_OUTPUT
-            else
-              echo "✅ 找到版本标签: $VERSION_TAG"
-              echo "🏷️  镜像标签: latest, $VERSION_TAG"
-              echo "=========================================="
-              echo "has_tag=true" >> $GITHUB_OUTPUT
-              echo "version=$VERSION_TAG" >> $GITHUB_OUTPUT
-              echo "image_tags=latest,$VERSION_TAG" >> $GITHUB_OUTPUT
+              exit 1
             fi
+          
+            echo "✅ 找到版本标签: $VERSION_TAG"
+            echo "🏷️  镜像标签: latest, $VERSION_TAG"
+            echo "=========================================="
+            echo "has_tag=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION_TAG" >> $GITHUB_OUTPUT
           fi
+
+  build-and-deploy:
+    runs-on: ubuntu-22.04
+    needs: [check-tag]
+    if: needs.check-tag.outputs.has_tag == 'true'
+
+    steps:
+      - name: 🔍 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 📝 Show version info
+        run: |
+          echo "=========================================="
+          echo "🏷️  版本发布"
+          echo "=========================================="
+          echo "📦 版本号: ${{ needs.check-tag.outputs.version }}"
+          echo "🏷️  镜像标签: latest, ${{ needs.check-tag.outputs.version }}"
+          echo "=========================================="
 
       # ==================== Maven 构建 ====================
       - name: ☕ Set up JDK 17
@@ -102,9 +124,8 @@ jobs:
           username: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
           password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
-      # ==================== 构建并推送镜像（有标签版本）====================
-      - name: 🏗️ Build and push Docker image (with version tag)
-        if: steps.version.outputs.has_tag == 'true'
+      # ==================== 构建并推送镜像 ====================
+      - name: 🏗️ Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -112,27 +133,9 @@ jobs:
           push: true
           tags: |
             ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ needs.check-tag.outputs.version }}
           labels: |
-            org.opencontainers.image.version=${{ steps.version.outputs.version }}
-            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # ==================== 构建并推送镜像（仅 latest）====================
-      - name: 🏗️ Build and push Docker image (latest only)
-        if: steps.version.outputs.has_tag == 'false'
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
-          labels: |
-            org.opencontainers.image.version=latest
+            org.opencontainers.image.version=${{ needs.check-tag.outputs.version }}
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
@@ -144,22 +147,12 @@ jobs:
           echo "=========================================="
           echo "✅ Docker 镜像构建并推送成功！"
           echo "=========================================="
-          
-          if [ "${{ steps.version.outputs.has_tag }}" == "true" ]; then
-            echo "📦 版本: ${{ steps.version.outputs.version }}"
-            echo "🏷️  镜像标签: latest, ${{ steps.version.outputs.version }}"
-            echo ""
-            echo "🔗 完整镜像地址:"
-            echo "   - ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
-            echo "   - ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
-          else
-            echo "📦 版本: latest (开发版本)"
-            echo "🏷️  镜像标签: latest"
-            echo ""
-            echo "🔗 完整镜像地址:"
-            echo "   - ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
-          fi
-          
+          echo "📦 版本: ${{ needs.check-tag.outputs.version }}"
+          echo "🏷️  镜像标签: latest, ${{ needs.check-tag.outputs.version }}"
+          echo ""
+          echo "🔗 完整镜像地址:"
+          echo "   - ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
+          echo "   - ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ needs.check-tag.outputs.version }}"
           echo "=========================================="
 
       # ==================== 上传配置文件 ====================
@@ -188,23 +181,16 @@ jobs:
             set -e
             
             echo "=========================================="
-            echo "🚀 开始部署版本: ${{ steps.version.outputs.version }}"
+            echo "🚀 开始部署版本: ${{ needs.check-tag.outputs.version }}"
             echo "=========================================="
             
             DEPLOY_DIR="/root/dezhi/server"
             CONTAINER_NAME="dezhi-server"
-            VERSION="${{ steps.version.outputs.version }}"
-            HAS_TAG="${{ steps.version.outputs.has_tag }}"
+            VERSION="${{ needs.check-tag.outputs.version }}"
             
             echo "📁 部署目录: ${DEPLOY_DIR}"
             echo "📦 容器名称: ${CONTAINER_NAME}"
             echo "🏷️  部署版本: ${VERSION}"
-            
-            if [ "$HAS_TAG" == "true" ]; then
-              echo "📌 部署类型: 正式版本发布"
-            else
-              echo "📌 部署类型: 开发版本更新"
-            fi
             echo ""
             
             # 创建部署目录
@@ -237,119 +223,7 @@ jobs:
             export ALIYUN_NAMESPACE="${{ env.ALIYUN_NAMESPACE }}"
             export IMAGE_NAME="${{ env.IMAGE_NAME }}"
             export CONTAINER_NAME="${CONTAINER_NAME}"
-            
-            # 根据是否有标签设置不同的镜像版本
-            if [ "$HAS_TAG" == "true" ]; then
-              export IMAGE_TAG="${VERSION}"
-              echo ""
-              echo "📦 使用镜像: ${ALIYUN_REGISTRY}/${ALIYUN_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG}"
-            else
-              export IMAGE_TAG="latest"
-              echo ""
-              echo "📦 使用镜像: ${ALIYUN_REGISTRY}/${ALIYUN_NAMESPACE}/${IMAGE_NAME}:latest"
-            fi
-            
-            # 拉取镜像
-            echo ""
-            echo "⬇️ 拉取镜像..."
-            docker-compose pull dezhi-server
-            echo "✅ 镜像拉取成功"
-            
-            # 停止旧容器
-            echo ""
-            echo "🔄 停止旧容器..."
-            docker-compose stop dezhi-server 2>/dev/null || true
-            docker-compose rm -f dezhi-server 2>/dev/null || true
-            echo "✅ 旧容器已停止"
-            
-            # 启动新容器
-            echo ""
-            echo "🚀 启动新容器..."
-            docker-compose up -d dezhi-server
-            echo "✅ 容器已启动"
-            
-            # 等待服务启动
-            echo ""
-            echo "⏳ 等待服务启动（30秒）..."
-            sleep 30
-            
-            # 检查容器状态
-            echo ""
-            echo "📊 容器状态:"
-            docker-compose ps dezhi-server
+            export IMAGE_TAG="${VERSION}"
             
             echo ""
-            echo "📝 最近日志:"
-            docker-compose logs --tail=50 dezhi-server
-            
-            # 健康检查
-            echo ""
-            if docker-compose ps dezhi-server | grep -q "Up"; then
-              echo "✅ 容器运行正常"
-            else
-              echo "❌ 容器未正常运行"
-              echo ""
-              echo "完整日志:"
-              docker-compose logs dezhi-server
-              exit 1
-            fi
-            
-            # 清理旧镜像（只在正式版本发布时清理）
-            if [ "$HAS_TAG" == "true" ]; then
-              echo ""
-              echo "🧹 清理旧镜像（保留最近5个版本）..."
-              OLD_IMAGES=$(docker images "${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/${{ env.IMAGE_NAME }}" --format "{{.ID}}" | tail -n +6)
-              if [ -n "$OLD_IMAGES" ]; then
-                echo "$OLD_IMAGES" | xargs -r docker rmi 2>/dev/null || true
-                echo "✅ 已清理旧镜像"
-              else
-                echo "ℹ️  无需清理"
-              fi
-            fi
-            
-            docker logout ${{ env.ALIYUN_REGISTRY }} 2>/dev/null || true
-            
-            echo ""
-            echo "=========================================="
-            echo "✅ 部署完成！"
-            echo "=========================================="
-            echo "📦 部署版本: ${VERSION}"
-            
-            if [ "$HAS_TAG" == "true" ]; then
-              echo "📌 部署类型: 正式版本"
-            else
-              echo "📌 部署类型: 开发版本"
-            fi
-            
-            echo "⏰ 完成时间: $(date '+%Y-%m-%d %H:%M:%S')"
-            echo "=========================================="
-
-      # ==================== 部署总结 ====================
-      - name: ✅ Deployment Summary
-        if: success()
-        run: |
-          echo "=========================================="
-          echo "🎉 部署成功！"
-          echo "=========================================="
-          echo "📦 版本: ${{ steps.version.outputs.version }}"
-          echo "🏷️  镜像标签: ${{ steps.version.outputs.image_tags }}"
-          echo "🖥️  服务器: ${{ secrets.SERVER_HOST }}"
-          
-          if [ "${{ steps.version.outputs.has_tag }}" == "true" ]; then
-            echo "📌 部署类型: 正式版本发布"
-          else
-            echo "📌 部署类型: 开发版本更新"
-          fi
-          
-          echo "⏰ 时间: $(date '+%Y-%m-%d %H:%M:%S')"
-          echo "=========================================="
-
-      - name: ❌ Deployment Failed
-        if: failure()
-        run: |
-          echo "=========================================="
-          echo "💥 部署失败！"
-          echo "=========================================="
-          echo "📦 版本: ${{ steps.version.outputs.version }}"
-          echo "请检查上面的错误日志"
-          echo "=========================================="
+            echo "📦 使用镜像: ${ALIYUN_REGISTRY}/${ALIYUN_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG}"

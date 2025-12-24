@@ -12,7 +12,7 @@ package com.devin.dezhi.constant;
  * @since 1.0.0
  */
 public class FileConstant {
-    public static final Long MAX_FILE_SIZE = 1024 * 1024 * 1000L;
+    public static final Long MAX_FILE_SIZE = 1024 * 1024 * 500L;
 
     public static final Integer MAX_CHUNK_SIZE = 10 * 1024 * 1024;
 }

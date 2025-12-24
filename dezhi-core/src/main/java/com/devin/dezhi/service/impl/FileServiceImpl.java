@@ -78,9 +78,8 @@ public class FileServiceImpl implements FileService {
             // 文件已经存在
             UploadSession session = new UploadSession();
             // 标记为秒传
-            session.setUploadId(FileUploadStatusEnum.INSTANT.name());
             session.setFinalName(file.getFinalName());
-            session.setStatus(FileUploadStatusEnum.COMPLETED);
+            session.setStatus(FileUploadStatusEnum.INSTANT);
             return session;
         }
         String extension = FileTypeUtils.getExtension(initiateUpload.getOriginalName());

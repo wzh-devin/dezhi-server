@@ -1,9 +1,6 @@
 -- 加载Vector插件
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 创建数据库 dezhi
-CREATE DATABASE IF NOT EXISTS dezhi;
-
 -- 创建相关表
 DROP TABLE IF EXISTS dezhi.dz_user;
 CREATE TABLE dezhi.dz_user(

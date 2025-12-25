@@ -25,4 +25,10 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       MINIO_BUCKET: ${MINIO_BUCKET_NAME}
+    networks:
+      - dezhi
+
+networks:
+  dezhi:
+    driver: bridge
 

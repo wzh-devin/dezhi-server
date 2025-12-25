@@ -37,6 +37,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public void saveTag(final TagSaveVO tagSaveVO) {
         Tag tag = BeanCopyUtils.copy(tagSaveVO, Tag.class);
+        tag.checkDuplicate();
         tag.save();
     }
 
@@ -60,6 +61,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public void updateTag(final TagUpdateVO tagUpdateVO) {
         Tag tag = BeanCopyUtils.copy(tagUpdateVO, Tag.class);
+        tag.checkDuplicate();
         tag.update();
     }
 }

@@ -2,12 +2,16 @@ package com.devin.dezhi.domain.entity;
 
 import java.math.BigInteger;
 import java.util.Date;
+import com.devin.dezhi.constant.I18nConstant;
 import com.devin.dezhi.dao.TagDao;
+import com.devin.dezhi.exception.ValidateException;
 import com.devin.dezhi.utils.IdGenerator;
 import com.devin.dezhi.utils.SpringContextHolder;
+import com.devin.dezhi.utils.i18n.I18nUtils;
 import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Objects;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -84,5 +88,20 @@ public class Tag implements Serializable {
         TagDao tagDao = SpringContextHolder.getBean(TagDao.class);
         setUpdateTime(new Date());
         tagDao.updateById(this);
+    }
+
+    /**
+     * 校验重复名.
+     */
+    public void checkDuplicate() {
+        TagDao tagDao = SpringContextHolder.getBean(TagDao.class);
+        Tag tag = tagDao
+                .lambdaQuery()
+                .ne(Tag::getId, this.id)
+                .eq(Tag::getName, this.name)
+                .one();
+        if (Objects.nonNull(tag)) {
+            throw new ValidateException(I18nUtils.getMessage(I18nConstant.NAME_DUPLICATE, this.name));
+        }
     }
 }

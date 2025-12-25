@@ -37,6 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void saveCategory(final CategorySaveVO categorySaveVO) {
         Category category = BeanCopyUtils.copy(categorySaveVO, Category.class);
+        category.checkDuplicate();
         category.save();
     }
 
@@ -60,6 +61,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategory(final CategoryUpdateVO categoryUpdateVO) {
         Category category = BeanCopyUtils.copy(categoryUpdateVO, Category.class);
+        category.checkDuplicate();
         category.update();
     }
 }

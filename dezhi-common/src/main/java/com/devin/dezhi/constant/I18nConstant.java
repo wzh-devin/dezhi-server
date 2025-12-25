@@ -25,5 +25,6 @@ public class I18nConstant {
     public static final String UPLOAD_ERROR = "upload.error";
     public static final String UPLOAD_NOT_FINISHED = "upload.not.finished";
     public static final String CHUNK_COUNT_NOT_MATCH = "chunk.count.not.match";
+    public static final String NAME_DUPLICATE = "name.duplicate";
 }
 // CHECKSTYLE:ON

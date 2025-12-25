@@ -15,7 +15,7 @@ WORKDIR /usr/src/app
 COPY ./dezhi-core/target/dezhi-core-1.0-SNAPSHOT.jar ./dezhi-core-1.0-SNAPSHOT.jar
 
 # 暴露端口
-EXPOSE 13001
+EXPOSE 12010
 
 # 修改容器时区
 RUN rm -f /etc/localtime \

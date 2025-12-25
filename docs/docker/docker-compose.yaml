@@ -4,7 +4,7 @@ services:
     container_name: dezhi-server
     restart: always
     ports:
-      - "14001:14001"
+      - "12010:12010"
     environment:
       # Java Options
       JAVA_OPTS: ${JAVA_OPTS}

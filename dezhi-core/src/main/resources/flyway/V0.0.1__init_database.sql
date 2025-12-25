@@ -21,7 +21,7 @@ COMMENT ON COLUMN dezhi.dz_user.update_time IS '更新时间';
 COMMENT ON TABLE dezhi.dz_user IS '用户表';
 
 INSERT INTO dezhi.dz_user(id, username, password, email)
-VALUES (0, 'administrator', '$2a$10$jmkJZNn2jLc/sA1KDWsBSeGL/RHwSYEpBpqHWSc5QT7C6Yn8Ql/ta', 'example@example.com')
+VALUES (0, 'administrator', '$2a$10$jmkJZNn2jLc/sA1KDWsBSeGL/RHwSYEpBpqHWSc5QT7C6Yn8Ql/ta', 'example@example.com');
 
 
 DROP TABLE IF EXISTS dezhi.dz_article;

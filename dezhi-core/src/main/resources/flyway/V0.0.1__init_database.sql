@@ -1,8 +1,10 @@
 -- 加载Vector插件
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 创建相关表
+-- 创建数据库 dezhi
+CREATE DATABASE IF NOT EXISTS dezhi;
 
+-- 创建相关表
 DROP TABLE IF EXISTS dezhi.dz_user;
 CREATE TABLE dezhi.dz_user(
                               id INT8 NOT NULL,
@@ -20,6 +22,9 @@ COMMENT ON COLUMN dezhi.dz_user.email IS '邮箱';
 COMMENT ON COLUMN dezhi.dz_user.create_time IS '创建时间';
 COMMENT ON COLUMN dezhi.dz_user.update_time IS '更新时间';
 COMMENT ON TABLE dezhi.dz_user IS '用户表';
+
+INSERT INTO dezhi.dz_user(id, username, password, email)
+VALUES (1, 'administrator', '$2a$10$jmkJZNn2jLc/sA1KDWsBSeGL/RHwSYEpBpqHWSc5QT7C6Yn8Ql/ta', 'example@example.com')
 
 
 DROP TABLE IF EXISTS dezhi.dz_article;

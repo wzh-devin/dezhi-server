@@ -7,6 +7,7 @@ import com.devin.dezhi.domain.entity.User;
 import com.devin.dezhi.domain.vo.LoginVO;
 import com.devin.dezhi.domain.vo.UserUpdateVO;
 import com.devin.dezhi.domain.vo.UserVO;
+import com.devin.dezhi.enums.DeviceTypeEnum;
 import com.devin.dezhi.exception.BusinessException;
 import com.devin.dezhi.service.UserService;
 import com.devin.dezhi.utils.BeanCopyUtils;
@@ -50,7 +51,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(I18nUtils.getMessage(I18nConstant.PASSWORD_ERROR));
         }
         // 登录
-        StpUtil.login(user.getId());
+        StpUtil.login(user.getId(), DeviceTypeEnum.PC.name());
         // 返回token
         return StpUtil.getTokenValue();
     }
@@ -69,6 +70,11 @@ public class UserServiceImpl implements UserService {
         User user = BeanCopyUtils.copy(updateVO, User.class);
         user.update();
         // 退出登录
-        StpUtil.logout();
+        logout();
+    }
+
+    @Override
+    public void logout() {
+        StpUtil.logout(StpUtil.getLoginId(), StpUtil.getLoginDeviceType());
     }
 }

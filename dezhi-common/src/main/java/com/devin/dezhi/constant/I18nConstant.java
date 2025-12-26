@@ -17,6 +17,7 @@ public class I18nConstant {
     public static final String PASSWORD_ERROR = "password.error";
     public static final String PARAM_IS_INVALID = "param.is.invalid";
     public static final String USER_NOT_LOGIN = "user.not.login";
+    public static final String HAVE_OTHER_LOGIN = "have.other.login";
     public static final String FILE_TYPE_NOT_ALLOWED = "file.type.not.allowed";
     public static final String FILE_ERROR = "file.error";
     public static final String FILE_SIZE_TOO_LARGE = "file.size.tool.large";

@@ -2,7 +2,9 @@ package com.devin.dezhi.exception;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import com.alibaba.fastjson2.JSON;
+import com.devin.dezhi.constant.I18nConstant;
 import com.devin.dezhi.utils.HttpUtils;
+import com.devin.dezhi.utils.i18n.I18nUtils;
 import com.devin.dezhi.utils.r.ApiResult;
 import com.devin.dezhi.utils.r.ResultEnum;
 import jakarta.servlet.http.HttpServletRequest;
@@ -59,8 +61,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotLoginException.class)
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     public ApiResult<?> handleNotLoginException(final NotLoginException e) {
-        log.error("未登录异常: {}", e.getMessage());
-        return ApiResult.fail(ResultEnum.USER_NOT_LOGIN, e.getMessage());
+        log.error("登录异常: {}", e.getLocalizedMessage());
+        if ("-4".equals(e.getType())) {
+            return ApiResult.fail(ResultEnum.LOGIN_ERROR.getCode(), I18nUtils.getMessage(I18nConstant.HAVE_OTHER_LOGIN));
+        }
+        return ApiResult.fail(ResultEnum.LOGIN_ERROR, e.getMessage());
     }
 
     /**

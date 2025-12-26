@@ -40,4 +40,9 @@ public interface UserService {
      * @param updateVO 修改信息
      */
     void updateUserInfo(UserUpdateVO updateVO);
+
+    /**
+     * 登出.
+     */
+    void logout();
 }

@@ -1,8 +1,11 @@
 package com.devin.dezhi.satoken;
 
 import cn.dev33.satoken.dao.SaTokenDao;
-import cn.dev33.satoken.session.SaSession;
+import cn.dev33.satoken.dao.auto.SaTokenDaoByStringFollowObject;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONReader;
+import com.alibaba.fastjson2.JSONWriter;
+import com.alibaba.fastjson2.filter.Filter;
 import com.devin.dezhi.constant.RedisKey;
 import com.devin.dezhi.utils.RedisUtils;
 import org.springframework.stereotype.Component;
@@ -15,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * 2025/12/4 21:45.
  *
  * <p>
- * 自定义 Sa-Token 实现类
+ * 自定义 Sa-Token 实现类，基于 Redis 存储
  * </p>
  *
  * @author <a href="https://github.com/wzh-devin">devin</a>
@@ -23,11 +26,17 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0.0
  */
 @Component
-// CHECKSTYLE:OFF
-public class CustomSaTokenDao implements SaTokenDao {
+public class CustomSaTokenDao implements SaTokenDaoByStringFollowObject {
 
     /**
-     * 获取 Value，如无返空
+     * Sa-Token AutoType 白名单过滤器.
+     */
+    private static final Filter AUTO_TYPE_FILTER = JSONReader.autoTypeFilter("cn.dev33.satoken.");
+
+    // ------------------------ String 读写操作
+
+    /**
+     * 获取 Value，如无返空.
      */
     @Override
     public String get(final String key) {
@@ -35,7 +44,7 @@ public class CustomSaTokenDao implements SaTokenDao {
     }
 
     /**
-     * 写入 Value，并设定存活时间 (单位: 秒)
+     * 写入 Value，并设定存活时间 (单位: 秒).
      */
     @Override
     public void set(final String key, final String value, final long timeout) {
@@ -54,20 +63,19 @@ public class CustomSaTokenDao implements SaTokenDao {
     }
 
     /**
-     * 修改 Value
+     * 修改 Value.
      */
     @Override
     public void update(final String key, final String value) {
-        String fullKey = RedisKey.generateRedisKey(key);
-        long expire = getTimeout(fullKey);
+        long expire = getTimeout(key);
         if (expire == SaTokenDao.NOT_VALUE_EXPIRE) {
             return;
         }
-        this.set(fullKey, value, expire);
+        this.set(key, value, expire);
     }
 
     /**
-     * 删除 Value
+     * 删除 Value.
      */
     @Override
     public void delete(final String key) {
@@ -76,7 +84,7 @@ public class CustomSaTokenDao implements SaTokenDao {
     }
 
     /**
-     * 获取 Value 的剩余存活时间 (单位: 秒)
+     * 获取 Value 的剩余存活时间 (单位: 秒).
      */
     @Override
     public long getTimeout(final String key) {
@@ -85,38 +93,50 @@ public class CustomSaTokenDao implements SaTokenDao {
     }
 
     /**
-     * 修改 Value 的剩余存活时间 (单位: 秒)
+     * 修改 Value 的剩余存活时间 (单位: 秒).
      */
     @Override
     public void updateTimeout(final String key, final long timeout) {
         String fullKey = RedisKey.generateRedisKey(key);
         if (timeout == SaTokenDao.NEVER_EXPIRE) {
-            long expire = getTimeout(fullKey);
+            long expire = getTimeout(key);
             if (expire == SaTokenDao.NEVER_EXPIRE) {
                 return;
             }
-            this.set(fullKey, this.get(fullKey), timeout);
+            this.set(key, this.get(key), timeout);
         } else {
             RedisUtils.expire(fullKey, timeout, TimeUnit.SECONDS);
         }
     }
 
+    // ------------------------ Object 读写操作
+
     /**
-     * 获取 Object，如无返空
+     * 获取 Object，如无返空.
      */
     @Override
     public Object getObject(final String key) {
         String fullKey = RedisKey.generateRedisKey(key);
-        return RedisUtils.get(fullKey);
+        String value = RedisUtils.get(fullKey);
+        if (value == null) {
+            return null;
+        }
+        // 使用 AutoType 过滤器来反序列化 Sa-Token 相关类
+        return JSON.parseObject(value, Object.class, AUTO_TYPE_FILTER);
     }
 
     @Override
-    public <T> T getObject(final String s, final Class<T> aClass) {
-        return null;
+    public <T> T getObject(final String key, final Class<T> classType) {
+        String fullKey = RedisKey.generateRedisKey(key);
+        String value = RedisUtils.get(fullKey);
+        if (value == null) {
+            return null;
+        }
+        return JSON.parseObject(value, classType, AUTO_TYPE_FILTER);
     }
 
     /**
-     * 写入 Object，并设定存活时间 (单位: 秒)
+     * 写入 Object，并设定存活时间 (单位: 秒).
      */
     @Override
     public void setObject(final String key, final Object object, final long timeout) {
@@ -124,7 +144,7 @@ public class CustomSaTokenDao implements SaTokenDao {
             return;
         }
 
-        String value = JSON.toJSONString(object);
+        String value = JSON.toJSONString(object, JSONWriter.Feature.WriteClassName);
         String fullKey = RedisKey.generateRedisKey(key);
 
         if (timeout == SaTokenDao.NEVER_EXPIRE) {
@@ -135,20 +155,19 @@ public class CustomSaTokenDao implements SaTokenDao {
     }
 
     /**
-     * 更新 Object
+     * 更新 Object.
      */
     @Override
     public void updateObject(final String key, final Object object) {
-        String fullKey = RedisKey.generateRedisKey(key);
-        long expire = getObjectTimeout(fullKey);
+        long expire = getObjectTimeout(key);
         if (expire == SaTokenDao.NOT_VALUE_EXPIRE) {
             return;
         }
-        this.setObject(fullKey, object, expire);
+        this.setObject(key, object, expire);
     }
 
     /**
-     * 删除 Object
+     * 删除 Object.
      */
     @Override
     public void deleteObject(final String key) {
@@ -157,7 +176,7 @@ public class CustomSaTokenDao implements SaTokenDao {
     }
 
     /**
-     * 获取 Object 的剩余存活时间 (单位: 秒)
+     * 获取 Object 的剩余存活时间 (单位: 秒).
      */
     @Override
     public long getObjectTimeout(final String key) {
@@ -166,57 +185,27 @@ public class CustomSaTokenDao implements SaTokenDao {
     }
 
     /**
-     * 修改 Object 的剩余存活时间 (单位: 秒)
+     * 修改 Object 的剩余存活时间 (单位: 秒).
      */
     @Override
     public void updateObjectTimeout(final String key, final long timeout) {
         String fullKey = RedisKey.generateRedisKey(key);
         if (timeout == SaTokenDao.NEVER_EXPIRE) {
-            long expire = getObjectTimeout(fullKey);
+            long expire = getObjectTimeout(key);
             if (expire == SaTokenDao.NEVER_EXPIRE) {
                 return;
             }
-            this.setObject(fullKey, this.getObject(fullKey), timeout);
+            this.setObject(key, this.getObject(key), timeout);
         } else {
             RedisUtils.expire(fullKey, timeout, TimeUnit.SECONDS);
         }
     }
 
-    @Override
-    public SaSession getSession(final String s) {
-        return null;
-    }
-
-    @Override
-    public void setSession(final SaSession saSession, final long l) {
-
-    }
-
-    @Override
-    public void updateSession(final SaSession saSession) {
-
-    }
-
-    @Override
-    public void deleteSession(final String s) {
-
-    }
-
-    @Override
-    public long getSessionTimeout(final String s) {
-        return 0;
-    }
-
-    @Override
-    public void updateSessionTimeout(final String s, final long l) {
-
-    }
-
     /**
-     * 搜索数据
+     * 搜索数据.
      */
     @Override
-    public List<String> searchData(String prefix, String keyword, int start, int size, boolean sortType) {
+    public List<String> searchData(final String prefix, final String keyword, final int start, final int size, final boolean sortType) {
         String fullKey = RedisKey.generateRedisKey(prefix);
         Set<String> keys = RedisUtils.keys(fullKey + "*" + keyword + "*");
         List<String> list = new ArrayList<>(keys);
@@ -228,4 +217,3 @@ public class CustomSaTokenDao implements SaTokenDao {
         return list.subList(fromIndex, toIndex);
     }
 }
-// CHECKSTYLE:ON

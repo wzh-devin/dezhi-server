@@ -88,7 +88,7 @@ public class UserController {
     @PostMapping("/logout")
     @Operation(summary = "登出")
     public ApiResult<Void> logout() {
-        StpUtil.logout();
+        userService.logout();
         return ApiResult.success();
     }
 }

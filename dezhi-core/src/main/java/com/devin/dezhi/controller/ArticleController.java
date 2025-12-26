@@ -8,6 +8,7 @@ import com.devin.dezhi.utils.r.Addition;
 import com.devin.dezhi.utils.r.ApiResult;
 import com.devin.dezhi.utils.r.PageResult;
 import com.devin.dezhi.vo.CommonDeleteVO;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,6 +52,7 @@ public class ArticleController {
      * @return ApiResult
      */
     @PostMapping("/save")
+    @Operation(summary = "初始化新增文章")
     public ApiResult<ArticleVO> saveArticle() {
         return ApiResult.success(articleService.saveArticle());
     }
@@ -62,6 +64,7 @@ public class ArticleController {
      * @return ApiResult
      */
     @PutMapping("/update")
+    @Operation(summary = "修改文章")
     public ApiResult<Void> updateArticle(
             @RequestBody final ArticleUpdateVO articleUpdateVO
     ) {
@@ -76,6 +79,7 @@ public class ArticleController {
      * @return ApiResult
      */
     @GetMapping("/getArticleInfo/{articleId}")
+    @Operation(summary = "获取文章信息")
     public ApiResult<ArticleVO> getArticleInfo(
             @Parameter(description = "文章id", in = ParameterIn.PATH) @PathVariable("articleId") final BigInteger articleId
     ) {
@@ -92,6 +96,7 @@ public class ArticleController {
      * @return ApiResult
      */
     @GetMapping("/pageArticle")
+    @Operation(summary = "分页查询文章")
     public ApiResult<List<ArticleVO>> pageArticle(
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") final Integer pageNum,
             @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") final Integer pageSize,
@@ -117,6 +122,7 @@ public class ArticleController {
      * @return ApiResult
      */
     @PostMapping("/delete")
+    @Operation(summary = "批量删除文章")
     public ApiResult<Void> deleteArticle(
            @RequestBody final CommonDeleteVO deleteVO
     ) {

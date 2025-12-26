@@ -27,7 +27,7 @@ VALUES (0, 'administrator', '$2a$10$jmkJZNn2jLc/sA1KDWsBSeGL/RHwSYEpBpqHWSc5QT7C
 DROP TABLE IF EXISTS dezhi.dz_article;
 CREATE TABLE dezhi.dz_article(
                                  id INT8 NOT NULL,
-                                 category_id INT8 NOT NULL,
+                                 category_id INT8,
                                  title VARCHAR(200) NOT NULL,
                                  summary VARCHAR(500),
                                  content TEXT,

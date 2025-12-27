@@ -129,4 +129,19 @@ public class ArticleController {
         articleService.deleteArticle(deleteVO.getIdList());
         return ApiResult.success();
     }
+
+    /**
+     * 清空回收站.
+     *
+     * @param deleteVO 删除参数
+     * @return ApiResult
+     */
+    @PostMapping("/clearRecycleBin")
+    @Operation(summary = "清空回收站")
+    public ApiResult<Void> clearRecycleBin(
+            @RequestBody final CommonDeleteVO deleteVO
+    ) {
+        articleService.clearRecycleBin(deleteVO.getIdList());
+        return ApiResult.success();
+    }
 }

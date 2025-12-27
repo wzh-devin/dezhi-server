@@ -8,6 +8,7 @@ import com.devin.dezhi.domain.entity.Category;
 import com.devin.dezhi.domain.entity.Tag;
 import com.devin.dezhi.domain.vo.ArticleQueryVO;
 import com.devin.dezhi.domain.vo.ArticleVO;
+import com.devin.dezhi.domain.vo.TagVO;
 import com.devin.dezhi.enums.ArticleStatusEnum;
 import com.devin.dezhi.mapper.ArticleMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -68,11 +70,8 @@ public class ArticleDao extends ServiceImpl<ArticleMapper, Article> {
             Set<BigInteger> tagSet = articleTagList.stream()
                     .map(ArticleTag::getTagId)
                     .collect(Collectors.toSet());
-            List<String> tagNameList = tagDao.listByIds(tagSet)
-                    .stream()
-                    .map(Tag::getName)
-                    .toList();
-            articleVO.setTagList(tagNameList);
+            List<Tag> tagList = tagDao.listByIds(tagSet);
+            articleVO.setTagList(BeanCopyUtils.copyList(tagList, TagVO.class));
         }
         return articleVO;
     }
@@ -95,6 +94,10 @@ public class ArticleDao extends ServiceImpl<ArticleMapper, Article> {
             lambdaQuery = lambdaQuery.ne(Article::getStatus, ArticleStatusEnum.DELETED);
         } else {
             lambdaQuery = lambdaQuery.in(Article::getStatus, queryVO.getStatus().name());
+        }
+
+        if (StringUtils.hasText(queryVO.getKeyword())) {
+            lambdaQuery = lambdaQuery.like(Article::getTitle, queryVO.getKeyword());
         }
 
         return lambdaQuery

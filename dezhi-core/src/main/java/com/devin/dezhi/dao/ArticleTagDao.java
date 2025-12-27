@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import java.math.BigInteger;
+import java.util.List;
 
 /**
  * 2025/12/26 22:07:50.
@@ -23,4 +25,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ArticleTagDao extends ServiceImpl<ArticleTagMapper, ArticleTag> {
 
+    /**
+     * 根据articleId删除关联信息.
+     * @param articleIdList 文章id列表
+     */
+    public void removeByArticleId(final List<BigInteger> articleIdList) {
+        lambdaUpdate()
+                .in(ArticleTag::getArticleId, articleIdList)
+                .remove();
+    }
 }

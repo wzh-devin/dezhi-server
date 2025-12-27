@@ -20,7 +20,7 @@ import java.util.List;
  * 2025/12/05 19:20:07.
  *
  * <p>
- *  分类(Category)ServiceImpl层
+ * 分类(Category)ServiceImpl层
  * </p>
  *
  * @author <a href="https://github.com/wzh-devin">devin</a>
@@ -63,5 +63,15 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = BeanCopyUtils.copy(categoryUpdateVO, Category.class);
         category.checkDuplicate();
         category.update();
+    }
+
+    @Override
+    public List<CategoryVO> optionalCategory() {
+        List<Category> categoryList = categoryDao.lambdaQuery()
+                .select(Category::getId, Category::getName)
+                .orderByDesc(Category::getUpdateTime)
+                .list();
+
+        return BeanCopyUtils.copyList(categoryList, CategoryVO.class);
     }
 }

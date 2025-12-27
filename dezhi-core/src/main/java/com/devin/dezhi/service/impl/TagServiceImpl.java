@@ -64,4 +64,14 @@ public class TagServiceImpl implements TagService {
         tag.checkDuplicate();
         tag.update();
     }
+
+    @Override
+    public List<TagVO> optionalTag() {
+        List<Tag> tagList = tagDao.lambdaQuery()
+                .select(Tag::getId, Tag::getName)
+                .orderByDesc(Tag::getUpdateTime)
+                .list();
+
+        return BeanCopyUtils.copyList(tagList, TagVO.class);
+    }
 }

@@ -12,7 +12,7 @@ import java.util.List;
  * 2025/12/05 19:20:07.
  *
  * <p>
- *  分类(Category)Service层
+ * 分类(Category)Service层
  * </p>
  *
  * @author <a href="https://github.com/wzh-devin">devin</a>
@@ -49,4 +49,11 @@ public interface CategoryService {
      * @param categoryUpdateVO 分类修改参数
      */
     void updateCategory(CategoryUpdateVO categoryUpdateVO);
+
+    /**
+     * 分类下拉列表.
+     *
+     * @return CategoryVO
+     */
+    List<CategoryVO> optionalCategory();
 }

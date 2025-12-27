@@ -56,4 +56,11 @@ public interface ArticleService {
      * @param idList 删除文章id列表
      */
     void deleteArticle(List<BigInteger> idList);
+
+    /**
+     * 清空回收站.
+     *
+     * @param idList 清空回收站文章id列表
+     */
+    void clearRecycleBin(List<BigInteger> idList);
 }

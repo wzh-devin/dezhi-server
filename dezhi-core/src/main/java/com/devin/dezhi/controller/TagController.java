@@ -89,6 +89,16 @@ public class TagController {
     }
 
     /**
+     * 获取标签下拉列表.
+     * @return ApiResult
+     */
+    @GetMapping("/optional")
+    @Operation(summary = "获取标签下拉列表")
+    public ApiResult<List<TagVO>> optionalTag() {
+        return ApiResult.success(tagService.optionalTag());
+    }
+
+    /**
      * 查询标签.
      *
      * @param pageNum  页码

@@ -36,7 +36,7 @@ public class ArticleVO implements Serializable {
     private String categoryName;
 
     @Schema(description = "标签列表")
-    private List<String> tagList;
+    private List<TagVO> tagList;
     
     @Schema(description = "文章标题")
     private String title;

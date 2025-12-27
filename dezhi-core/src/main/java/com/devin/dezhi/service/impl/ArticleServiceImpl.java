@@ -2,6 +2,7 @@ package com.devin.dezhi.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.devin.dezhi.dao.ArticleDao;
+import com.devin.dezhi.dao.ArticleTagDao;
 import com.devin.dezhi.dao.CategoryDao;
 import com.devin.dezhi.dao.TagDao;
 import com.devin.dezhi.domain.entity.Article;
@@ -10,6 +11,7 @@ import com.devin.dezhi.domain.entity.Tag;
 import com.devin.dezhi.domain.vo.ArticleQueryVO;
 import com.devin.dezhi.domain.vo.ArticleUpdateVO;
 import com.devin.dezhi.domain.vo.ArticleVO;
+import com.devin.dezhi.domain.vo.TagVO;
 import com.devin.dezhi.enums.StatusFlagEnum;
 import com.devin.dezhi.service.ArticleService;
 import com.devin.dezhi.utils.BeanCopyUtils;
@@ -50,6 +52,8 @@ public class ArticleServiceImpl implements ArticleService {
     private final CategoryDao categoryDao;
 
     private final TagDao tagDao;
+
+    private final ArticleTagDao articleTagDao;
 
     @Override
     public ArticleVO saveArticle() {
@@ -102,16 +106,17 @@ public class ArticleServiceImpl implements ArticleService {
                         .peek(articleVO -> {
                             Optional.ofNullable(articleVO.getCategoryId())
                                     .ifPresent(a -> articleVO.setCategoryName(categoryMap.get(articleVO.getCategoryId())));
-                            List<String> tagNameList = tagList.stream()
-                                    .filter(
-                                            tag -> tagMap.getOrDefault(
-                                                    articleVO.getId(),
-                                                    Collections.emptySet()
-                                            ).contains(tag.getId())
-                                    )
-                                    .map(Tag::getName)
-                                    .toList();
-                            Optional.of(tagNameList)
+                            List<TagVO> tagVOList = BeanCopyUtils.copyList(
+                                    tagList.stream()
+                                            .filter(
+                                                    tag -> tagMap.getOrDefault(
+                                                            articleVO.getId(),
+                                                            Collections.emptySet()
+                                                    ).contains(tag.getId())
+                                            ).toList(),
+                                    TagVO.class
+                            );
+                            Optional.of(tagVOList)
                                     .filter(t -> !CollectionUtils.isEmpty(t))
                                     .ifPresentOrElse(
                                             articleVO::setTagList,
@@ -128,5 +133,13 @@ public class ArticleServiceImpl implements ArticleService {
                 .set(Article::getStatus, StatusFlagEnum.DELETED.name())
                 .in(Article::getId, idList)
                 .update();
+    }
+
+    @Override
+    public void clearRecycleBin(final List<BigInteger> idList) {
+        // 删除文章
+        articleDao.removeBatchByIds(idList);
+        // 删除文章关联的标签
+        articleTagDao.removeByArticleId(idList);
     }
 }

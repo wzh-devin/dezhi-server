@@ -152,11 +152,11 @@ public class Article implements Serializable {
         ArticleTagDao articleTagDao = SpringContextHolder.getBean(ArticleTagDao.class);
         setUpdateTime(new Date());
         articleDao.updateById(this);
+        // 删除标签关联
+        articleTagDao.lambdaUpdate()
+                .eq(ArticleTag::getArticleId, this.id)
+                .remove();
         if (!CollectionUtils.isEmpty(tagIdList)) {
-            // 删除原本的标签关联
-            articleTagDao.lambdaUpdate()
-                    .eq(ArticleTag::getArticleId, this.id)
-                    .remove();
             // 新增标签关联
             List<ArticleTag> articleTagList = tagIdList.stream().map(tagId -> {
                 ArticleTag articleTag = new ArticleTag();

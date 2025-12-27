@@ -89,6 +89,16 @@ public class CategoryController {
     }
 
     /**
+     * 获取分类下拉列表.
+     * @return ApiResult
+     */
+    @GetMapping("/optional")
+    @Operation(summary = "获取分类下拉列表")
+    public ApiResult<List<CategoryVO>> optionalCategory() {
+        return ApiResult.success(categoryService.optionalCategory());
+    }
+
+    /**
      * 查询分类.
      *
      * @param pageNum  页码

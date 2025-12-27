@@ -48,4 +48,11 @@ public interface TagService {
      * @param tagUpdateVO 标签修改参数
      */
     void updateTag(TagUpdateVO tagUpdateVO);
+
+    /**
+     * 查询可选标签.
+     *
+     * @return 可选标签列表
+     */
+    List<TagVO> optionalTag();
 }

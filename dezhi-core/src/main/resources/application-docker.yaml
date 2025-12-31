@@ -31,8 +31,17 @@ spring:
       # 配置 weaviate
       weaviate:
         host: ${WEAVIATE_HOST}:${WEAVIATE_PORT}
+        scheme: http
         headers:
           Authorization: Bearer ${WEAVIATE_API_KEY}
+        object-class: ArticleChunk
+        consistency-level: quorum
+        filter-field:
+          articleId: TEXT
+          categoryId: TEXT
+          status: TEXT
+          title: TEXT
+          uri: TEXT
 
 dezhi:
   minio:

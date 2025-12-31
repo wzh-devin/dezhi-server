@@ -14,6 +14,26 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD}
 
+  # 配置 spring ai
+  ai:
+    # 配置 openai
+    openai:
+      base-url: ${OPENAI_BASE_URL}
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_CHAT_MODEL}
+      embedding:
+        options:
+          model: ${OPENAI_EMBEDDING_MODEL}
+
+    vectorstore:
+      # 配置 weaviate
+      weaviate:
+        host: ${WEAVIATE_HOST}:${WEAVIATE_PORT}
+        headers:
+          Authorization: Bearer ${WEAVIATE_API_KEY}
+
 dezhi:
   minio:
     endpoint: ${MINIO_ENDPOINT}

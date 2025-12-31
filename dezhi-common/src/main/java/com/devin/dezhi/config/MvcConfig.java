@@ -1,7 +1,7 @@
 package com.devin.dezhi.config;
 
-import cn.dev33.satoken.interceptor.SaInterceptor;
-import cn.dev33.satoken.stp.StpUtil;
+import com.devin.dezhi.interceptor.SaTokenInterceptor;
+import com.devin.dezhi.utils.SpringContextHolder;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -39,6 +39,7 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
+        SaTokenInterceptor saTokenInterceptor = SpringContextHolder.getBean(SaTokenInterceptor.class);
         // 配置swagger排除路径
         List<String> swaggerExcludePathPatterns = List.of(
                 "/doc.html",
@@ -52,14 +53,8 @@ public class MvcConfig implements WebMvcConfigurer {
         List<String> dezhiExcludePathPatterns = List.of(
                 "/**/login"
         );
-        // 添加拦截器
-        registry.addInterceptor(
-                        new SaInterceptor(
-                                handle -> {
-                                    StpUtil.checkLogin();
-                                }
-                        )
-                )
+        // 添加拦截器，处理异步请求时跳过验证（SSE流式请求的二次派发）
+        registry.addInterceptor(saTokenInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(dezhiExcludePathPatterns)
                 .excludePathPatterns(swaggerExcludePathPatterns);

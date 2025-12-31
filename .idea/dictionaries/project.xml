@@ -2,7 +2,11 @@
   <dictionary name="project">
     <words>
       <w>aliyun</w>
+      <w>chatcmpl</w>
+      <w>logprobs</w>
       <w>satoken</w>
+      <w>vectorstore</w>
+      <w>weaviate</w>
     </words>
   </dictionary>
 </component>

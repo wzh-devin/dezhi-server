@@ -152,6 +152,37 @@ spring:
     baseline-version: 0
     locations: classpath:flyway
 
+  # spring ai
+  ai:
+    # openai
+    openai:
+      base-url: xxx
+      api-key: xxx
+      chat:
+        options:
+          model: xxx
+          temperature: 0.7
+          max-tokens: 2000
+      embedding:
+        options:
+          model: xxx
+
+    vectorstore:
+      # weaviate
+      weaviate:
+        host: xxx:xxx
+        scheme: http
+        headers:
+          Authorization: Bearer xxx
+        object-class: ArticleChunk
+        consistency-level: quorum
+        filter-field:
+          articleId: TEXT
+          categoryId: TEXT
+          status: TEXT
+          title: TEXT
+          uri: TEXT
+
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
   # token 前缀
@@ -181,6 +212,9 @@ springdoc:
     - group: 'dezhi-blog-base'
       paths-to-match: '/**'
       packages-to-scan: com.devin.dezhi.controller
+    - group: 'dezhi-blog-ai'
+      paths-to-match: '/**'
+      packages-to-scan: com.devin.dezhi.ai.controller
 
 # mybatis-plus 配置
 mybatis-plus:

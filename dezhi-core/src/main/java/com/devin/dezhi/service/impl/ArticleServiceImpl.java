@@ -16,8 +16,12 @@ import com.devin.dezhi.enums.StatusFlagEnum;
 import com.devin.dezhi.service.ArticleService;
 import com.devin.dezhi.utils.BeanCopyUtils;
 import com.devin.dezhi.utils.r.PageResult;
+import io.weaviate.client.WeaviateClient;
+import io.weaviate.client.v1.filters.Operator;
+import io.weaviate.client.v1.filters.WhereFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +58,11 @@ public class ArticleServiceImpl implements ArticleService {
     private final TagDao tagDao;
 
     private final ArticleTagDao articleTagDao;
+
+    private final WeaviateClient weaviateClient;
+
+    @Value("${spring.ai.vectorstore.weaviate.object-class}")
+    private String className;
 
     @Override
     public ArticleVO saveArticle() {
@@ -133,6 +142,23 @@ public class ArticleServiceImpl implements ArticleService {
                 .set(Article::getStatus, StatusFlagEnum.DELETED.name())
                 .in(Article::getId, idList)
                 .update();
+
+        // 批量删除weaviate文档库
+        WhereFilter whereFilter = WhereFilter.builder()
+                .path("articleId")
+                .operator(Operator.ContainsAny)
+                .valueText(
+                        idList.stream()
+                                .map(Object::toString)
+                                .toArray(String[]::new)
+                ).build();
+        weaviateClient.batch()
+                .objectsBatchDeleter()
+                .withClassName(className)
+                .withWhere(whereFilter)
+                .withDryRun(false)
+                .withOutput("verbose")
+                .run();
     }
 
     @Override

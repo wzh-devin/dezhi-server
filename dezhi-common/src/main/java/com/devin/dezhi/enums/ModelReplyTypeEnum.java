@@ -31,5 +31,5 @@ public enum ModelReplyTypeEnum {
     /**
      * 错误.
      */
-    ERROR;
+    ERROR
 }

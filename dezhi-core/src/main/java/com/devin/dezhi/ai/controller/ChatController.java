@@ -1,6 +1,7 @@
 package com.devin.dezhi.ai.controller;
 
 import com.devin.dezhi.ai.domain.req.ChatRequest;
+import com.devin.dezhi.ai.domain.resp.ChatResponse;
 import com.devin.dezhi.ai.service.RAGChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,13 +41,13 @@ public class ChatController {
      */
     @Operation(summary = "流式聊天")
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> chatStream(
+    public Flux<ServerSentEvent<ChatResponse>> chatStream(
             @RequestBody final ChatRequest chatRequest
     ) {
         return ragChatService.chatStream(chatRequest)
                 .map(
-                        response -> ServerSentEvent.<String>builder()
-                                .data(response.getData())
+                        response -> ServerSentEvent.<ChatResponse>builder()
+                                .data(response)
                                 .build()
                 );
     }

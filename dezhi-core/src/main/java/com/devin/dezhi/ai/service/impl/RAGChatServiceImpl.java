@@ -1,27 +1,24 @@
 package com.devin.dezhi.ai.service.impl;
 
 import com.devin.dezhi.ai.domain.req.ChatRequest;
-import com.devin.dezhi.ai.domain.resp.OpenAiChatCompletionChunk;
-import com.devin.dezhi.ai.domain.resp.OpenAiSseResponse;
+import com.devin.dezhi.ai.domain.resp.ChatResponse;
 import com.devin.dezhi.ai.retrieval.RAGRetrievalService;
 import com.devin.dezhi.ai.service.RAGChatService;
+import com.devin.dezhi.enums.ModelReplyTypeEnum;
 import com.devin.dezhi.utils.IdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 2025/12/31 23:48.
@@ -54,17 +51,12 @@ public class RAGChatServiceImpl implements RAGChatService {
             请基于以上资料回答用户问题。如果资料中没有相关信息，请诚实说明。
             """;
 
-    private static final String CHAT_COMPLETION_PREFIX = "chatcmpl-";
-
     private final RAGRetrievalService ragRetrievalService;
 
-    private final OpenAiChatModel openAiChatModel;
-
-    @Value("${spring.ai.openai.chat.options.model:gpt-4}")
-    private String modelName;
+    private final ChatModel chatModel;
 
     @Override
-    public Flux<OpenAiSseResponse> chatStream(final ChatRequest chatRequest) {
+    public Flux<ChatResponse> chatStream(final ChatRequest chatRequest) {
         List<Document> retrievedDocuments = ragRetrievalService.retrieve(
                 chatRequest.getMessage(),
                 chatRequest.getTopK(),
@@ -80,78 +72,24 @@ public class RAGChatServiceImpl implements RAGChatService {
         messages.add(new SystemMessage(SYSTEM_PROMPT + context));
         messages.add(new UserMessage(chatRequest.getMessage()));
 
-        // 生成唯一的响应ID
-        String responseId = CHAT_COMPLETION_PREFIX + IdGenerator.generateUUID();
-        AtomicBoolean isFirst = new AtomicBoolean(true);
-
-        // 调用大模型输出并转换为OpenAI标准格式
-        return openAiChatModel.stream(new Prompt(messages))
-                .map(chatResponse -> convertToOpenAiFormat(chatResponse, responseId, isFirst))
-                .concatWith(Flux.just(OpenAiSseResponse.done()));
-    }
-
-    /**
-     * 将Spring AI的ChatResponse转换为OpenAI标准格式.
-     *
-     * @param chatResponse Spring AI响应
-     * @param responseId   响应ID
-     * @param isFirst      是否为第一个chunk
-     * @return OpenAI标准格式响应
-     */
-    private OpenAiSseResponse convertToOpenAiFormat(
-            final ChatResponse chatResponse,
-            final String responseId,
-            final AtomicBoolean isFirst
-    ) {
-        // 提取内容和finishReason
-        String content = extractContent(chatResponse);
-        String finishReason = extractFinishReason(chatResponse);
-
-        OpenAiChatCompletionChunk chunk;
-
-        if (isFirst.compareAndSet(true, false)) {
-            // 第一个chunk，包含角色信息和内容
-            chunk = OpenAiChatCompletionChunk.createFirstChunkWithContent(responseId, modelName, content);
-        } else if (finishReason != null) {
-            // 最后一个chunk，包含内容和finishReason
-            chunk = OpenAiChatCompletionChunk.createFinalChunkWithContent(responseId, modelName, content, finishReason);
-        } else {
-            // 内容chunk
-            chunk = OpenAiChatCompletionChunk.createContentChunk(responseId, modelName, content);
-        }
-
-        return OpenAiSseResponse.of(chunk);
-    }
-
-    /**
-     * 从ChatResponse中提取内容.
-     *
-     * @param chatResponse Spring AI响应
-     * @return 内容字符串
-     */
-    private String extractContent(final ChatResponse chatResponse) {
-        if (chatResponse == null || chatResponse.getResults().isEmpty()) {
-            return "";
-        }
-        var output = chatResponse.getResults().get(0).getOutput();
-        return output.getText();
-    }
-
-    /**
-     * 从ChatResponse中提取finish_reason.
-     *
-     * @param chatResponse Spring AI响应
-     * @return finish_reason，如果未完成则返回null
-     */
-    private String extractFinishReason(final ChatResponse chatResponse) {
-        if (chatResponse == null || chatResponse.getResults().isEmpty()) {
-            return null;
-        }
-        var metadata = chatResponse.getResults().get(0).getMetadata();
-        if (metadata.getFinishReason() != null) {
-            return metadata.getFinishReason().toLowerCase();
-        }
-        return null;
+        // 生成sessionId
+        String sessionId = IdGenerator.generateUUID();
+        return chatModel.stream(new Prompt(messages))
+                .map(response -> {
+                    String text = response.getResult().getOutput().getText();
+                    return ChatResponse.builder()
+                            .sessionId(sessionId)
+                            .content(text)
+                            .replyType(ModelReplyTypeEnum.TEXT)
+                            .created(response.getMetadata().get("created"))
+                            .build();
+                }).concatWithValues(
+                        ChatResponse.builder()
+                                .sessionId(sessionId)
+                                .content("")
+                                .replyType(ModelReplyTypeEnum.DONE)
+                                .build()
+                );
     }
 
     private String buildContext(final List<Document> documents) {

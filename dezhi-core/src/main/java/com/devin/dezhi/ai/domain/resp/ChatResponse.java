@@ -1,8 +1,8 @@
 package com.devin.dezhi.ai.domain.resp;
 
+import com.devin.dezhi.enums.ModelReplyTypeEnum;
 import lombok.Builder;
 import lombok.Data;
-import java.util.List;
 
 /**
  * 2025/12/31 23:38.
@@ -24,39 +24,15 @@ public class ChatResponse {
     /**
      * 响应内容.
      */
-    private String message;
+    private String content;
 
     /**
-     * 响应来源.
+     * 响应类型.
      */
-    private List<Source> sourceList;
+    private ModelReplyTypeEnum replyType;
 
     /**
-     * 检索时间.
+     * 创建时间.
      */
-    private Long retrievalTimeMs;
-
-    @Data
-    @Builder
-    public static class Source {
-        /**
-         * 文章id.
-         */
-        private String articleId;
-
-        /**
-         * 文章标题.
-         */
-        private String title;
-
-        /**
-         * 文章uri.
-         */
-        private String uri;
-
-        /**
-         * 文章片段.
-         */
-        private String snippet;
-    }
+    private Long created;
 }

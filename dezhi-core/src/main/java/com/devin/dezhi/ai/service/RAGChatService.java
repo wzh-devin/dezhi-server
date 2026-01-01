@@ -1,7 +1,7 @@
 package com.devin.dezhi.ai.service;
 
 import com.devin.dezhi.ai.domain.req.ChatRequest;
-import com.devin.dezhi.ai.domain.resp.OpenAiSseResponse;
+import com.devin.dezhi.ai.domain.resp.ChatResponse;
 import reactor.core.publisher.Flux;
 
 /**
@@ -20,5 +20,5 @@ public interface RAGChatService {
      * @param chatRequest 请求参数
      * @return OpenAI标准格式的SSE响应流
      */
-    Flux<OpenAiSseResponse> chatStream(ChatRequest chatRequest);
+    Flux<ChatResponse> chatStream(ChatRequest chatRequest);
 }

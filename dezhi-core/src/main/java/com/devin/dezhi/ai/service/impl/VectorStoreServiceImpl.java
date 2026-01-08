@@ -123,9 +123,7 @@ public class VectorStoreServiceImpl implements VectorStoreService {
             int toIndex = Math.min(fromIndex + BATCH_SIZE, documentMetadataList.size());
             List<Document> batch = documentMetadataList.subList(fromIndex, toIndex);
 
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                vectorStore.add(batch);
-            }, vectorStoreTaskExecutor);
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> vectorStore.add(batch), vectorStoreTaskExecutor);
 
             tasks.add(future);
         }

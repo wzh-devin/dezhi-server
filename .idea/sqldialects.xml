@@ -2,5 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/dezhi-core/src/main/resources/flyway/V0.0.1__init_database.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dezhi-core/src/main/resources/flyway/V0.0.2__add_modelType.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dezhi-core/src/main/resources/flyway/V0.0.3__add_modelStatus.sql" dialect="GenericSQL" />
   </component>
 </project>

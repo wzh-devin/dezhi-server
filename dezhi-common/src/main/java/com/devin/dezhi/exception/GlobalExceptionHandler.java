@@ -53,6 +53,19 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理模型异常.
+     *
+     * @param e 模型异常
+     * @return 响应结果集
+     */
+    @ExceptionHandler(ModelException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public ApiResult<?> handleBusinessException(final ModelException e) {
+        log.error("模型异常: {}", e.getMessage());
+        return ApiResult.fail(e.getErrCode(), e.getErrMsg());
+    }
+
+    /**
      * 处理未登录异常.
      *
      * @param e 未登录异常

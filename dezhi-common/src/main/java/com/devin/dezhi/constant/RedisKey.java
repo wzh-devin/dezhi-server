@@ -15,6 +15,8 @@ public class RedisKey {
 
     public static final String UPLOAD_SESSION_KEY = "upload:session:%s";
 
+    public static final String MODEL_KEY = "model:chat:activated_info";
+
     /**
      * Redis基础Key.
      */

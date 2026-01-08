@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 2025/12/27 02:02.
+ * 2026/1/8 11:12.
  *
  * <p>
- *     文章状态枚举
+ *     模型提供者枚举类
  * </p>
  *
  * @author <a href="https://github.com/wzh-devin">devin</a>
@@ -16,24 +16,10 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum ArticleStatusEnum {
-    /**
-     * 正常.
-     */
-    NORMAL,
+public enum ModelProviderEnum {
 
     /**
-     * 草稿.
+     * OPENAI.
      */
-    DRAFT,
-
-    /**
-     * 已发布.
-     */
-    PUBLISHED,
-
-    /**
-     * 已删除.
-     */
-    DELETED
+    OPENAI
 }

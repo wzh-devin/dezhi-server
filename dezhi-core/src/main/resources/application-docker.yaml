@@ -20,9 +20,6 @@ spring:
     openai:
       base-url: ${OPENAI_BASE_URL}
       api-key: ${OPENAI_API_KEY}
-      chat:
-        options:
-          model: ${OPENAI_CHAT_MODEL}
       embedding:
         options:
           model: ${OPENAI_EMBEDDING_MODEL}

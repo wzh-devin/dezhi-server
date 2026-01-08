@@ -1,5 +1,6 @@
 package com.devin.dezhi.ai.agent;
 
+import com.devin.dezhi.ai.factory.ModelFactory;
 import com.devin.dezhi.ai.service.VectorStoreService;
 import com.devin.dezhi.domain.vo.req.ChatRequest;
 import com.devin.dezhi.domain.vo.resp.ChatResponse;
@@ -51,17 +52,22 @@ public class BaseAgent {
             请基于以上资料回答用户问题。如果资料中没有相关信息，请诚实说明。
             """;
 
-    private final ChatModel chatModel;
+    private final ModelFactory modelFactory;
 
     private final VectorStoreService vectorStoreService;
 
     /**
-     * 聊天.
+     * 流式聊天.
      *
      * @param chatRequest 请求
      * @return 响应
      */
     public Flux<ChatResponse> chatStream(final ChatRequest chatRequest) {
+        ChatModel model = modelFactory.getChatModel();
+        return doChatStream(chatRequest, model);
+    }
+
+    private Flux<ChatResponse> doChatStream(final ChatRequest chatRequest, final ChatModel model) {
         List<Document> retrievedDocuments = vectorStoreService.retrieve(
                 chatRequest.getMessage(),
                 chatRequest.getTopK()
@@ -77,7 +83,7 @@ public class BaseAgent {
 
         // 生成sessionId
         String sessionId = IdGenerator.generateUUID();
-        return chatModel.stream(new Prompt(messages))
+        return model.stream(new Prompt(messages))
                 .map(response -> {
                     String text = response.getResult().getOutput().getText();
                     return ChatResponse.builder()

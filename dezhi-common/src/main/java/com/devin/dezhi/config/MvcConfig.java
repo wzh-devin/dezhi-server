@@ -3,6 +3,8 @@ package com.devin.dezhi.config;
 import com.devin.dezhi.interceptor.SaTokenInterceptor;
 import com.devin.dezhi.utils.SpringContextHolder;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -58,5 +60,13 @@ public class MvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 .excludePathPatterns(dezhiExcludePathPatterns)
                 .excludePathPatterns(swaggerExcludePathPatterns);
+    }
+
+    @Override
+    public void configureAsyncSupport(final AsyncSupportConfigurer configurer) {
+        ThreadPoolTaskExecutor asyncHttpTaskExecutor =
+                SpringContextHolder.getBean("asyncHttpTaskExecutor", ThreadPoolTaskExecutor.class);
+        configurer.setTaskExecutor(asyncHttpTaskExecutor);
+        configurer.setDefaultTimeout(5 * 60 * 1000);
     }
 }

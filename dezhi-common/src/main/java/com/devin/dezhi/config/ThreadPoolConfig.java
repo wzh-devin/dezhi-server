@@ -24,6 +24,23 @@ public class ThreadPoolConfig {
      *
      * @return 线程池
      */
+    @Bean("asyncHttpTaskExecutor")
+    public ThreadPoolTaskExecutor asyncHttpTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(50);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("async-http-task-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+        return executor;
+    }
+
+    /**
+     * 向量库线程池.
+     *
+     * @return 线程池
+     */
     @Bean("vectorStoreTaskExecutor")
     public ThreadPoolTaskExecutor vectorStoreTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

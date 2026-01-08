@@ -1,4 +1,4 @@
-package com.devin.dezhi.ai.domain.resp;
+package com.devin.dezhi.domain.vo.resp;
 
 import com.devin.dezhi.enums.ModelReplyTypeEnum;
 import lombok.Builder;

@@ -1,8 +1,7 @@
-package com.devin.dezhi.ai.domain.req;
+package com.devin.dezhi.domain.vo.req;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import java.util.Map;
 
 /**
  * 2025/12/31 23:41.
@@ -33,18 +32,6 @@ public class ChatRequest {
      */
     @Schema(description = "搜索数量")
     private Integer topK;
-
-    /**
-     * 过滤条件.
-     */
-    @Schema(description = "过滤条件")
-    private Map<String, Object> filters;
-
-    /**
-     * 重新排序.
-     */
-    @Schema(description = "重新排序")
-    private Boolean rerank = Boolean.FALSE;
 
     /**
      * 流式返回.

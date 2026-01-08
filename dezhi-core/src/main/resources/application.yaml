@@ -212,9 +212,6 @@ springdoc:
     - group: 'dezhi-blog-base'
       paths-to-match: '/**'
       packages-to-scan: com.devin.dezhi.controller
-    - group: 'dezhi-blog-ai'
-      paths-to-match: '/**'
-      packages-to-scan: com.devin.dezhi.ai.controller
 
 # mybatis-plus 配置
 mybatis-plus:

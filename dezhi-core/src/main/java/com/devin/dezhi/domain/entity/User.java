@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Date;
 import com.devin.dezhi.dao.UserDao;
 import com.devin.dezhi.utils.EncryptUtils;
+import com.devin.dezhi.utils.IdGenerator;
 import com.devin.dezhi.utils.SpringContextHolder;
 import lombok.Data;
 import java.io.Serial;
@@ -81,5 +82,15 @@ public class User implements Serializable {
         setPassword(EncryptUtils.bcrypt(this.password));
         setUpdateTime(new Date());
         userDao.updateById(this);
+    }
+
+    /**
+     * 保存.
+     */
+    public void save() {
+        UserDao userDao = SpringContextHolder.getBean(UserDao.class);
+        setId(IdGenerator.generateKey());
+        init();
+        userDao.save(this);
     }
 }

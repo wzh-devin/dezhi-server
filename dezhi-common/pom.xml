@@ -18,6 +18,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>weixin-java-cp</artifactId>
+            <version>4.5.0</version>
+        </dependency>
         <!-- springboot项目必要依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

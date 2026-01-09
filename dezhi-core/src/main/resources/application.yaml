@@ -229,3 +229,11 @@ dezhi:
     access-key: xxx
     secret-key: xxx
     bucket-name: xxx
+
+wx:
+  corp-id: ww91790f09a9ac4ec1
+  agent-id: 1000002
+  secret: wJnnSBx3nyqO6Xnj75_6RqsC96_gj9PNP1ondPwqY_4
+  redirect-uri: https://53378f27ef92.ngrok-free.app/api/v1/wx/callback
+  token: mJelQjIGfhDy7jim1MiRA
+  aes-key: ADyP930mtGWSrFxuUBn8zSNqYMl0VVUHSFobwSifRKy

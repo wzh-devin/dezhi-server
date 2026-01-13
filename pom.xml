@@ -20,7 +20,9 @@
 
     <modules>
         <module>dezhi-common</module>
-        <module>dezhi-core</module>
+        <module>dezhi-admin</module>
+        <module>dezhi-application</module>
+        <module>dezhi-api</module>
     </modules>
 
     <properties>

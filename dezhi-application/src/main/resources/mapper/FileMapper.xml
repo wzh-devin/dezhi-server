@@ -12,7 +12,6 @@
         <result column="hash" property="hash" jdbcType="VARCHAR"/>
         <result column="size" property="size" jdbcType="BIGINT"/>
         <result column="type" property="type" jdbcType="VARCHAR"/>
-        <result column="extension" property="extension" jdbcType="VARCHAR"/>
         <result column="storage_type" property="storageType" jdbcType="VARCHAR"/>
         <result column="uri" property="uri" jdbcType="VARCHAR"/>
         <result column="is_deleted" property="deleted" jdbcType="INTEGER"/>

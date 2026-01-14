@@ -1,5 +1,7 @@
 package com.devin.dezhi.interceptor;
 
+import cn.dev33.satoken.interceptor.SaInterceptor;
+import cn.dev33.satoken.stp.StpUtil;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +19,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * @since 1.0.0
  */
 @Component
-public class SaTokenInterceptor implements HandlerInterceptor {
+public class SaTokenInterceptor extends SaInterceptor {
+
+    public SaTokenInterceptor() {
+        super(handle -> StpUtil.checkLogin());
+    }
 
     /**
      * 拦截器处理.
@@ -37,6 +43,6 @@ public class SaTokenInterceptor implements HandlerInterceptor {
         if (request.getDispatcherType() == DispatcherType.ASYNC) {
             return true;
         }
-        return HandlerInterceptor.super.preHandle(request, response, handler);
+        return super.preHandle(request, response, handler);
     }
 }

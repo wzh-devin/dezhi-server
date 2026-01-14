@@ -9,6 +9,7 @@ import com.devin.dezhi.utils.r.ApiResult;
 import com.devin.dezhi.utils.r.PageResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +93,7 @@ public class ArticleController {
     @GetMapping("/{articleId}")
     @Operation(summary = "获取文章详情")
     public ApiResult<ArticleVO> getArticleInfo(
-            @Parameter(description = "文章id") @PathVariable("articleId") final BigInteger articleId
+            @Parameter(description = "文章id", in = ParameterIn.PATH) @PathVariable("articleId") final BigInteger articleId
     ) {
         return ApiResult.success(articleService.getArticleInfo(articleId));
     }

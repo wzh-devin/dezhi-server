@@ -32,7 +32,7 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-@Tag(name = "portal-article")
+@Tag(name = "article")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/portal/article")

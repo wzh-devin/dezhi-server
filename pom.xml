@@ -22,7 +22,7 @@
         <module>dezhi-common</module>
         <module>dezhi-admin</module>
         <module>dezhi-application</module>
-        <module>dezhi-api</module>
+        <module>dezhi-portal</module>
     </modules>
 
     <properties>

@@ -209,9 +209,12 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   group-configs:
-    - group: 'dezhi-blog-base'
+    - group: 'dezhi-blog-admin'
       paths-to-match: '/**'
-      packages-to-scan: com.devin.dezhi.controller
+      packages-to-scan: com.devin.dezhi.admin.controller
+    - group: 'dezhi-blog-portal'
+      paths-to-match: '/**'
+      packages-to-scan: com.devin.dezhi.portal.controller
 
 # mybatis-plus 配置
 mybatis-plus:

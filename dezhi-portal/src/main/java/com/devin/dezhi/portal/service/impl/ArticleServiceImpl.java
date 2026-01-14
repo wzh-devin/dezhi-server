@@ -47,8 +47,6 @@ public class ArticleServiceImpl implements ArticleService {
 
     private final CategoryDao categoryDao;
 
-    private final ArticleTagDao articleTagDao;
-
     private final TagDao tagDao;
 
     @Override

@@ -54,7 +54,7 @@ public class MvcConfig implements WebMvcConfigurer {
         // 配置项目排除路径
         List<String> dezhiExcludePathPatterns = List.of(
                 "/**/login",
-                "/api/**"
+                "/portal/**"
         );
         // 添加拦截器，处理异步请求时跳过验证（SSE流式请求的二次派发）
         registry.addInterceptor(saTokenInterceptor)

@@ -1,4 +1,4 @@
-package com.devin.dezhi.admin.controller.ai;
+package com.devin.dezhi.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.devin.dezhi.constant.RedisKey;
@@ -11,8 +11,8 @@ import com.devin.dezhi.utils.RedisUtils;
 import com.devin.dezhi.utils.r.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

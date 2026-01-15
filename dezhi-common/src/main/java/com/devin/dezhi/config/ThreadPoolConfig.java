@@ -41,14 +41,14 @@ public class ThreadPoolConfig {
      *
      * @return 线程池
      */
-    @Bean("vectorStoreTaskExecutor")
-    public ThreadPoolTaskExecutor vectorStoreTaskExecutor() {
+    @Bean("embeddingStoreTaskExecutor")
+    public ThreadPoolTaskExecutor embeddingStoreTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(8);
         executor.setQueueCapacity(25);
         executor.setDaemon(false);
-        executor.setThreadNamePrefix("vector-store-task-");
+        executor.setThreadNamePrefix("embedding-store-task-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60);

@@ -1,6 +1,6 @@
 package com.devin.dezhi.service;
 
-import org.springframework.ai.document.Document;
+import dev.langchain4j.data.segment.TextSegment;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -28,5 +28,5 @@ public interface VectorStoreService {
      * @param topK 检索数量.
      * @return 检索结果.
      */
-    List<Document> retrieve(String message, Integer topK);
+    List<TextSegment> retrieve(String message, Integer topK);
 }

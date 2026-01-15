@@ -23,6 +23,7 @@
         <module>dezhi-admin</module>
         <module>dezhi-application</module>
         <module>dezhi-portal</module>
+        <module>dezhi-ai</module>
     </modules>
 
     <properties>
